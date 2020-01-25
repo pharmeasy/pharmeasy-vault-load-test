@@ -1,0 +1,30 @@
+{
+  "scenarios": [
+    {
+      "name": "template 1",
+      "actions": [
+        {
+          "name": "recommendations",
+          "parameters": {
+            "baseUrl": "",
+            "city": "Mumbai"
+          },
+          "assertions": [
+            {
+              "type": "",
+              "key": "",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "name": "pause",
+          "parameters": {
+            "duration": 100
+          }
+        }
+      ],
+      "simulation": {}
+    }
+  ]
+}

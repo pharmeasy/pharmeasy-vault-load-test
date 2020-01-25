@@ -1,0 +1,56 @@
+apply plugin: "scala"
+apply plugin: "idea"
+apply plugin: "eclipse"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    jcenter()
+    maven { url "http://repo.spring.io/libs-snapshot" }
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    compile "org.projectlombok:lombok:1.18.10"
+    annotationProcessor "org.projectlombok:lombok:1.18.10"
+    compile "com.jayway.jsonpath:json-path:2.4.0"
+    compile "io.gatling.highcharts:gatling-charts-highcharts:3.3.1"
+    compile "org.apache.commons:commons-lang3:3.9"
+
+    compile "org.json4s:json4s-native_2.12:3.6.7"
+    compile "org.json4s:json4s-jackson_2.12:3.6.7"
+    compile group: 'org.reflections', name: 'reflections', version: '0.9.11'
+    compile group: 'com.opencsv', name: 'opencsv', version: '5.0'
+}
+
+
+task loadTest(type: JavaExec) {
+
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs = [
+            "-Dgatling.core.directory.binaries=${sourceSets.test.output.toString()}", "-Xms4g", "-Xmx4g", "-Dgatling.charting.indicators.lowerBound=400"
+    ]
+    main = "io.gatling.app.Gatling"
+    args = [
+            "--simulation", "simulations." + System.getProperty("loadTestClass", "E2EScenarioBuilder"),
+            "--results-folder", "gatling-results",
+            "--binaries-folder", sourceSets.test.output.toString(),
+            "--simulations-folder", sourceSets.test.scala.srcDirs
+    ]
+
+    systemProperty('gatling.charting.indicators.lowerBound', '400')
+    systemProperty('gatling.ahc.requestTimeout', System.getProperty('requestTimeout', '60000'))
+    systemProperties System.properties
+}
+

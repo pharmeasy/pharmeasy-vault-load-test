@@ -1,0 +1,42 @@
+{
+  "start": [
+    {
+      "action": "landing",
+      "probability": 1.0
+    }
+  ],
+  "landing": [
+    {
+      "action": "profile",
+      "probability": 0.05
+    },
+    {
+      "action": "search",
+      "probability": 0.95
+    }
+  ],
+  "profile": [
+    {
+      "action": "orders",
+      "probability": 0.8
+    },
+    {
+      "action": "wallet",
+      "probability": 0.1
+    },
+    {
+      "action": "home",
+      "probability": 0.1
+    }
+  ],
+  "search": [
+    {
+      "action": "home",
+      "probability": 0.05
+    },
+    {
+      "action": "omnisearch",
+      "probability": 0.95
+    }
+  ]
+}
