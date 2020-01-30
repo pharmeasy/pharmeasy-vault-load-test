@@ -32,8 +32,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def home(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("home")
@@ -44,8 +43,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def omniSearch(baseUrl: String = getString("consumer.base_url"), query: String = getString("consumer.medicine_to_search"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("omni search")
@@ -56,8 +54,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def omniSearchCharByChar(baseUrl: String = getString("consumer.base_url"), query: String, pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) = {
     val buffer = ListBuffer[ChainBuilder]()
@@ -66,7 +63,6 @@ object ConsumerActions extends BaseActions {
     }
     exec(buffer toArray)
   }
-
 
   def viewAll(baseUrl: String = getString("consumer.base_url"), query: String = getString("consumer.medicine_to_search"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), pageNumber: String = "1", accessToken: String = getString("consumer.access_token")) =
     http("view all results")
@@ -77,8 +73,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def viewPages(baseUrl: String = getString("consumer.base_url"), query: String = getString("consumer.medicine_to_search"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), pageNumber: String = "1", accessToken: String = getString("consumer.access_token")): ChainBuilder = {
     doWhile(session => getFromSession(session, "pageNumber", pageNumber).toInt <= getFromSession(session, "pageNumberMax", getFromSession(session, "pageNumber", pageNumber)).toInt) {
@@ -108,8 +103,7 @@ object ConsumerActions extends BaseActions {
         jsonPath("$.data.isAvailable").find.optional.saveAs("isAvailable"),
         jsonPath("$.data.maxQuantity").find.optional.saveAs("maxQuantity"),
         jsonPath("$.data.availableQuantity").find.optional.saveAs("availableQuantity"),
-        jsonPath("$.data.itemId").find.optional.saveAs("itemId")
-      )
+        jsonPath("$.data.itemId").find.optional.saveAs("itemId"))
 
   def productDescription(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), productId: String = null) =
     http("product description")
@@ -120,8 +114,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def addToCart(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), productId: String = null, quantity: String = "1", accessToken: String = getString("consumer.access_token")) =
     http("add to cart")
@@ -133,8 +126,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def cartItems(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("cart items")
@@ -145,8 +137,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def recommendedOTCProducts(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), productId: String = "") =
     http("recommended otc products")
@@ -157,8 +148,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def offers(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("offers and promotions")
@@ -169,8 +159,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def savingsOnCart(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), productId: String = "", quantity: String = "1") =
     http("savings on cart items")
@@ -182,8 +171,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def sendOTP(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), contactNumber: String = getString("consumer.contact_number")) =
     http("send otp")
@@ -195,8 +183,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def login(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), contactNumber: String = getString("consumer.contact_number"), otp: String = getString("consumer.otp")) =
     http("login")
@@ -210,8 +197,7 @@ object ConsumerActions extends BaseActions {
         status.is(200),
         jsonPath("$.status").is("1"),
         jsonPath("$.data.profile.id").find.saveAs("customerId"),
-        jsonPath("$.data.accessToken").find.saveAs("accessToken")
-      )
+        jsonPath("$.data.accessToken").find.saveAs("accessToken"))
 
   def logout(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city")) =
     http("logout")
@@ -221,8 +207,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def cartSyncAfterLogin(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), productId: String = "", quantity: String = "1") =
     http("cart sync after login")
@@ -235,8 +220,7 @@ object ConsumerActions extends BaseActions {
       .check(
         status.is(200),
         jsonPath("$.status").is("1"),
-        jsonPath("$.data.syncStatus").is("true")
-      )
+        jsonPath("$.data.syncStatus").is("true"))
 
   def cartItemsCountAfterLogin(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("get count of items in cart")
@@ -247,8 +231,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def fetchAddress(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("fetch addresses")
@@ -259,8 +242,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def addAddress(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("add address")
@@ -272,8 +254,7 @@ object ConsumerActions extends BaseActions {
       .check(
         status.is(200),
         jsonPath("$.status").is("1"),
-        jsonPath(session => "$.data[?(@.pincode == '" + getFromSession(session, "pincode", pincode) + "' || @.cityId == " + getFromSession(session, "city", city) + ")].id").saveAs("addressId")
-      )
+        jsonPath(session => "$.data[?(@.pincode == '" + getFromSession(session, "pincode", pincode) + "' || @.cityId == " + getFromSession(session, "city", city) + ")].id").saveAs("addressId"))
 
   def fetchAddressOrAddIfNotExist(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) = {
     exec(fetchAddress())
@@ -291,8 +272,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def deliveryPreference(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("delivery preference")
@@ -312,22 +292,18 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def paymentInstrumentationAfterOrderPlacement(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), orderId: String = null) =
     http("payment instrumentation after order placement")
-      .get(session => baseUrl + s"/v3/ecommerce/payment-instrument?hasLocalRxAdded=false&orderId=${
-        getFromSession(session, "orderId", orderId)
-      }&orderType=0")
+      .get(session => baseUrl + s"/v3/ecommerce/payment-instrument?hasLocalRxAdded=false&orderId=${getFromSession(session, "orderId", orderId)}&orderType=0")
       .header("X-Pincode", session => getFromSession(session, "pincode", pincode))
       .header("X-Default-City", session => getFromSession(session, "city", city))
       .header("X-Access-Token", session => getFromSession(session, "accessToken", accessToken))
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def amountBifurcation(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), addressId: String = null) =
     http("amount bifurcation")
@@ -341,8 +317,7 @@ object ConsumerActions extends BaseActions {
       .check(
         status.is(200),
         jsonPath("$.status").is("1"),
-        jsonPath("$.data.amountBifurcation[?(@.text == 'Amount to be paid')].value").saveAs("amountToBePaid")
-      )
+        jsonPath("$.data.amountBifurcation[?(@.text == 'Amount to be paid')].value").saveAs("amountToBePaid"))
 
   def codPayment(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), orderId: String = null) =
     http("cod payment")
@@ -354,8 +329,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def onlinePaymentStatusVerification(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), callerOrderId: String = null) =
     http("online payment status verification")
@@ -368,8 +342,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def orderPriceFluctuation(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), orderId: String = null) =
     http("order price fluctuation")
@@ -380,8 +353,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def paymentInvocationDetails(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), orderId: String = null, paymentId: String = getString("wallet.payment_id"), paymentSubId: String = getString("wallet.payment_sub_id"), sdkDetails: Seq[String] = getSeq("wallet.sdk_details")) =
     http("payment invocation details after order placement")
@@ -405,31 +377,53 @@ object ConsumerActions extends BaseActions {
       .check(
         status.is(200),
         jsonPath("$.status").is("1"),
-        jsonPath("$.data.caller_order_id").saveAs("callerOrderId")
-      )
+        jsonPath("$.data.caller_order_id").saveAs("callerOrderId"))
 
-  def placeOrder(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), addressId: String = null, paymentId: String = "-1", paymentSubId: String = "-1") =
-    http("place order")
-      .post(baseUrl + "/v3/ecommerce/orders")
+  def uploadRx(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) = {
+    http("upload rx")
+      .put(session => session("imageUploadUrl").as[String])
       .header("X-Pincode", session => getFromSession(session, "pincode", pincode))
       .header("X-Default-City", session => getFromSession(session, "city", city))
       .header("X-Access-Token", session => getFromSession(session, "accessToken", accessToken))
-      .body(StringBody(session =>
+      .asJson
+      .check(
+        status.is(200))
+  }
 
+  def getUploadRxUrl(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) = {
+    http("get upload rx url")
+      .get("/api/prescriptions/generateUploadUrl?count=1&pdfCount=0")
+      .header("X-Pincode", session => getFromSession(session, "pincode", pincode))
+      .header("X-Default-City", session => getFromSession(session, "city", city))
+      .header("X-Access-Token", session => getFromSession(session, "accessToken", accessToken))
+      .asJson
+      .check(
+        status.is(200),
+        jsonPath("$.[0].key").saveAs("uploadedImage"),
+        jsonPath("$.[0].url").saveAs("imageUploadUrl"))
+  }
+
+  def placeOrder(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), addressId: String = null, paymentId: String = "-1", paymentSubId: String = "-1") =
+    http("place order")
+      .post(session => baseUrl + (if (session("isRxRequired").asOption[Boolean].getOrElse(false)) "/v3/ecommerce/orders" else "/api/order/placeOrder"))
+      .header("X-Pincode", session => getFromSession(session, "pincode", pincode))
+      .header("X-Default-City", session => getFromSession(session, "city", city))
+      .header("X-Access-Token", session => getFromSession(session, "accessToken", accessToken))
+      .body(StringBody(session => {
+        if (session("isRxRequired").asOption[Boolean].getOrElse(false))
+          s"""{"addressId":${getFromSession(session, "addressId", addressId)},"imagesNames":["${getFromSession(session, "uploadedImage")}"],"requiresPharmacistCall":0,"pdfFiles":[],"pastImages":[],"orderType":4,"noPrescriptionOrder":0,"optForDoctorConsultation":0,"patients":[{"orderInfoType":"1","orderInfoNotes":""}],"notes":"","convertToSubscription":0,"slotDate":0,"intervalValue": ${randomInterval},"walletOptIn":1,"paymentId": ${getFromSession(session, "paymentId", paymentId)},"isUfpEligible":true}"""
+        else
           s"""{ "requiresPharmacistCall": 0, "isFromNewOrderFlow": true, "isUfpEligible": 1, "paymentId": ${getFromSession(session, "paymentId", paymentId)}, "paymentSubId": ${getFromSession(session, "paymentSubId", paymentSubId)}, "isUserEligibleForUfp": "true", "walletOptIn": "true", "noPrescriptionOrder": true, "intervalValue": ${
             randomInterval
           }, "addressId": "${
             getFromSession(session, "addressId", addressId)
           }", "status": 1 }"""
-
-      ))
+      }))
       .asJson
       .check(
         status.is(200),
         jsonPath("$.status").is("1"),
-        jsonPath("$.data.orders.medicineOrder.id").saveAs("orderId")
-      )
-
+        jsonPath("$.data.orders.medicineOrder.id").saveAs("orderId"))
 
   def fetchOrders(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("fetch orders")
@@ -440,8 +434,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def orderDetails(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), orderId: String = "") =
     http("order details")
@@ -453,8 +446,7 @@ object ConsumerActions extends BaseActions {
       .check(
         status.is(200),
         jsonPath("$.status").is("1"),
-        jsonPath("$.data.currentStateDetails").saveAs("orderStatus")
-      )
+        jsonPath("$.data.currentStateDetails").saveAs("orderStatus"))
 
   def orderItems(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), orderId: String = "") =
     http("order items")
@@ -465,8 +457,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def cancelOrder(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), orderId: String = "") =
     http("cancel order")
@@ -479,8 +470,7 @@ object ConsumerActions extends BaseActions {
       .body(StringBody(session => s"""cancelReasonId=69&cancelReasonList=[69]&status=${getFromSession(session, "orderStatus", "8")}"""))
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def trackOrder(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) =
     http("track order")
@@ -491,8 +481,7 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 
   def customerDetails(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), customerId: String = "") =
     http("customer details")
@@ -503,6 +492,5 @@ object ConsumerActions extends BaseActions {
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("1")
-      )
+        jsonPath("$.status").is("1"))
 }

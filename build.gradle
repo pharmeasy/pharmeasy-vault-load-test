@@ -39,7 +39,7 @@ task loadTest(type: JavaExec) {
     dependsOn testClasses
     classpath = sourceSets.test.runtimeClasspath
     jvmArgs = [
-            "-Dgatling.core.directory.binaries=${sourceSets.test.output.toString()}", "-Xms4g", "-Xmx4g", "-Dgatling.charting.indicators.lowerBound=400"
+            "-Dgatling.core.directory.binaries=${sourceSets.test.output.toString()}", "-Xms4g", "-Xmx8g", "-Dgatling.charting.indicators.lowerBound=400"
     ]
     main = "io.gatling.app.Gatling"
     args = [

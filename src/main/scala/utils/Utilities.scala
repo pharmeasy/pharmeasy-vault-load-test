@@ -1,13 +1,13 @@
 package utils
 
-import java.io.{FileInputStream, InputStreamReader}
+import java.io.{ FileInputStream, InputStreamReader }
 import java.util.Collections
 
 import com.opencsv.CSVReader
 import org.apache.commons.lang3.RandomStringUtils
 import org.json4s._
 import org.json4s.jackson.JsonMethods
-import org.json4s.jackson.Serialization.{read, write}
+import org.json4s.jackson.Serialization.{ read, write }
 
 import scala.collection.JavaConverters._
 import scala.io.Source
