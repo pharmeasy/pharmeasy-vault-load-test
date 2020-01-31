@@ -9,66 +9,33 @@ import scala.concurrent.duration._
 
 class B2COrders extends io.gatling.core.Predef.Simulation {
 
-  val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl("https://qa2.thea.gomercury.in/")
+  private val random = scala.util.Random
+
+  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl("https://qa2.thea.gomercury.in")
     .acceptHeader("application/json")
     .contentTypeHeader("application/json")
     .authorizationHeader("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwiZXhwIjoxNTgxMDczODg0LCJ1c2VyIjoiZGhydXYuY2hvdWRoYXJ5QHBoYXJtZWFzeS5pbiIsInRlbmFudCI6InRoMDE0In0.6x7bapjGARFb-0VbPfNQgf-Mjp98YaHif7-EIsSxWsjG2DmFSTL4JWAtaL2N37Wb_rT7OrGZ5P9JxMhWXw0DFw")
     .disableWarmUp.disableCaching
 
-  val externalOrderfeeder = Iterator.continually(Map("externalOrder" -> s"AutoLoad-${scala.math.abs(java.util.UUID.randomUUID.getMostSignificantBits)}"))
+  private val externalOrderfeeder = Iterator.continually(Map("externalOrder" -> s"AutoLoad-${scala.math.abs(java.util.UUID.randomUUID.getMostSignificantBits)}"))
 
-  val medicinesData: List[Array[String]] = readCSV("b2c_meds.csv")
+  private val medicinesData: List[Array[String]] = readCSV("b2c_meds.csv")
 
-  def getPayload: String = {
-    val shuffled = scala.util.Random.shuffle(medicinesData)
-    val num = randomNumberBetweenRange(1, 3)
-    num match {
-      case 1 =>
-        s"""{
-           |  "medicineId":77,
-           |  "name":"${shuffled(0)}",
-           |  "ucode":"${shuffled(1)}",
-           |  "orderedQuantity":${shuffled(2)}
-           |}""".stripMargin
-      case 2 =>
-        s"""{
-           |  "medicineId":77,
-           |  "name":"${shuffled(0)(0)}",
-           |  "ucode":"${shuffled(0)(1)}",
-           |  "orderedQuantity":${shuffled(0)(2)}
-           |},
-           |{ "medicineId":77,
-           |  "name":"${shuffled(1)(0)}",
-           |  "ucode":"${shuffled(1)(1)}",
-           |  "orderedQuantity":${shuffled(1)(2)}
-           |}""".stripMargin
-      case 3 =>
-        s"""{
-           |  "medicineId":77,
-           |  "name":"${shuffled(0)(0)}",
-           |  "ucode":"${shuffled(0)(1)}",
-           |  "orderedQuantity":${shuffled(0)(2)}
-           |},
-           |{
-           |  "medicineId":77,
-           |  "name":"${shuffled(1)(0)}",
-           |  "ucode":"${shuffled(1)(1)}",
-           |  "orderedQuantity":${shuffled(1)(2)}
-           |},
-           |{
-           |  "medicineId":77,
-           |  "name":"${shuffled(2)(0)}",
-           |  "ucode":"${shuffled(2)(1)}",
-           |  "orderedQuantity":${shuffled(2)(2)}
-           |}""".stripMargin
-    }
+  private def getPayload(max: Int = 3): String = {
+    val shuffled = random.shuffle(medicinesData)
+    val num = randomNumberBetweenRange(1, max)
+    0.to(num - 1).map(index => shuffled(index)).map(e =>
+      s"""{
+         |  "medicineId":77,
+         |  "name":"${e(0)}",
+         |  "ucode":"${e(1)}",
+         |  "orderedQuantity":${e(2)}
+         |}""".stripMargin).mkString(",\n")
   }
 
+  private val continuallyFeeder = Iterator.continually(Map("items" -> getPayload()))
 
-  val continuallyFeeder = Iterator.continually(Map("items" -> getPayload))
-
-  val jsonFeederFileParser: io.gatling.core.feeder.FileBasedFeederBuilder[Any]#F = jsonFile("src/test/resources/meds.json").circular
-  val payload: String =
+  private val payload: String =
     """{
                         "id":null,
                         "externalOrderId":"${externalOrder}",
@@ -100,9 +67,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
                         "items": [
                           ${items}
                         ],
-                        "pickedItems":[
-
-                        ],
+                        "pickedItems":[],
                         "discountPercentage":10,
                         "storeDiscountPercentage":10,
                         "priority":0,
@@ -127,15 +92,15 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
                         "ref":true
                       }"""
 
-  val scenarioFusion = scenario("AsynchronousTest")
+  private val scenarioFusion = scenario("AsynchronousTest")
     .feed(externalOrderfeeder)
     .feed(continuallyFeeder)
     .exec(http("AsynchronousAPIs")
-      .post("api/outward/orders/")
+      .post("/api/outward/orders")
       .body(StringBody(payload))
       .check(status.is(200)))
 
   setUp(
-    scenarioFusion.inject(rampUsers(1) during (2 seconds))
+    scenarioFusion.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds))
   ).protocols(httpProtocol)
 }
