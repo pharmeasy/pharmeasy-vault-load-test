@@ -98,6 +98,6 @@ class TemplateSearchToPlaceOrderAndCancel extends BaseTemplate {
   override def step(): OpenInjectionStep =
     rampUsers(rampUpUsers) during (rampUpDuration seconds);
 
-  override def enabled() = false
+  override def enabled() = true
 
 }

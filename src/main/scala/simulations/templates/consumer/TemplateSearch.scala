@@ -37,6 +37,6 @@ class TemplateSearch extends BaseTemplate {
   override def step(): OpenInjectionStep =
     rampUsers(rampUpUsers) during (rampUpDuration seconds);
 
-  override def enabled() = true
+  override def enabled() = false
 
 }
