@@ -25,13 +25,13 @@
       "probability": 0.1
     },
     {
-      "action": "home",
+      "action": "start",
       "probability": 0.1
     }
   ],
   "search": [
     {
-      "action": "home",
+      "action": "start",
       "probability": 0.05
     },
     {

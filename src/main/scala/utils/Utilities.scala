@@ -23,7 +23,7 @@ object Utilities {
 
   def randomFromArray(seq: Array[_]) = seq(randomNumberBetweenRange(0, seq.size - 1))
 
-  def randomMobileNumber() = randomNumberBetweenRange(7, 9).toString + RandomStringUtils.randomNumeric(9).toString
+  def randomMobileNumber = randomNumberBetweenRange(7, 9).toString + RandomStringUtils.randomNumeric(9).toString
 
   def openStream(resource: String) = {
     val file = new java.io.File(resource.trim)

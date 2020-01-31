@@ -392,25 +392,26 @@ object ConsumerActions extends BaseActions {
 
   def getUploadRxUrl(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token")) = {
     http("get upload rx url")
-      .get("/api/prescriptions/generateUploadUrl?count=1&pdfCount=0")
+      .get("/v3/images/generate-s3-url?count=1&pdfCount=0")
       .header("X-Pincode", session => getFromSession(session, "pincode", pincode))
       .header("X-Default-City", session => getFromSession(session, "city", city))
       .header("X-Access-Token", session => getFromSession(session, "accessToken", accessToken))
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.[0].key").saveAs("uploadedImage"),
-        jsonPath("$.[0].url").saveAs("imageUploadUrl"))
+        jsonPath("$.data[0].key").saveAs("uploadedImage"),
+        jsonPath("$.data[0].url").saveAs("imageUploadUrl"))
   }
 
   def placeOrder(baseUrl: String = getString("consumer.base_url"), pincode: String = getString("consumer.pincode"), city: String = getString("consumer.city"), accessToken: String = getString("consumer.access_token"), addressId: String = null, paymentId: String = "-1", paymentSubId: String = "-1") =
     http("place order")
-      .post(session => baseUrl + (if (session("isRxRequired").asOption[Boolean].getOrElse(false)) "/v3/ecommerce/orders" else "/api/order/placeOrder"))
+      .post(session => baseUrl + (if (session("isRxRequired").asOption[String].getOrElse("0").toInt == 0) "/v3/ecommerce/orders" else "/api/order/placeOrder"))
       .header("X-Pincode", session => getFromSession(session, "pincode", pincode))
       .header("X-Default-City", session => getFromSession(session, "city", city))
       .header("X-Access-Token", session => getFromSession(session, "accessToken", accessToken))
       .body(StringBody(session => {
-        if (session("isRxRequired").asOption[Boolean].getOrElse(false))
+        val isRxRequired = session("isRxRequired").asOption[String].getOrElse("0").toInt == 1;
+        if (isRxRequired)
           s"""{"addressId":${getFromSession(session, "addressId", addressId)},"imagesNames":["${getFromSession(session, "uploadedImage")}"],"requiresPharmacistCall":0,"pdfFiles":[],"pastImages":[],"orderType":4,"noPrescriptionOrder":0,"optForDoctorConsultation":0,"patients":[{"orderInfoType":"1","orderInfoNotes":""}],"notes":"","convertToSubscription":0,"slotDate":0,"intervalValue": ${randomInterval},"walletOptIn":1,"paymentId": ${getFromSession(session, "paymentId", paymentId)},"isUfpEligible":true}"""
         else
           s"""{ "requiresPharmacistCall": 0, "isFromNewOrderFlow": true, "isUfpEligible": 1, "paymentId": ${getFromSession(session, "paymentId", paymentId)}, "paymentSubId": ${getFromSession(session, "paymentSubId", paymentSubId)}, "isUserEligibleForUfp": "true", "walletOptIn": "true", "noPrescriptionOrder": true, "intervalValue": ${
