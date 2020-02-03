@@ -97,7 +97,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
 
 
 
-  private val createB2BOrders = scenario("AsynchronousTest")
+  private val createB2COrders = scenario("AsynchronousTest")
     .feed(externalOrderIdfeeder)
     .feed(medsFeeder)
     .exec(http("AsynchronousAPIs")
@@ -106,6 +106,6 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
       .check(status.is(200)))
 
   setUp(
-    createB2BOrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds))
+    createB2COrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds))
   ).protocols(httpProtocol)
 }
