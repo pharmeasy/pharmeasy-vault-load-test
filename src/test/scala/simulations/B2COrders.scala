@@ -17,7 +17,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
     .authorizationHeader("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwiZXhwIjoxNTgxMDczODg0LCJ1c2VyIjoiZGhydXYuY2hvdWRoYXJ5QHBoYXJtZWFzeS5pbiIsInRlbmFudCI6InRoMDE0In0.6x7bapjGARFb-0VbPfNQgf-Mjp98YaHif7-EIsSxWsjG2DmFSTL4JWAtaL2N37Wb_rT7OrGZ5P9JxMhWXw0DFw")
     .disableWarmUp.disableCaching
 
-  private val externalOrderfeeder = Iterator.continually(Map("externalOrder" -> s"AutoLoad-${scala.math.abs(java.util.UUID.randomUUID.getMostSignificantBits)}"))
+  private val externalOrderIdfeeder = Iterator.continually(Map("externalOrder" -> s"AutoLoad-${scala.math.abs(java.util.UUID.randomUUID.getMostSignificantBits)}"))
 
   private val medicinesData: List[Array[String]] = readCSV("b2c_meds.csv")
 
@@ -34,7 +34,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
          |      }""".stripMargin).mkString(",\n")
   }
 
-  private val continuallyFeeder = Iterator.continually(Map("items" -> getPayload()))
+  private val medsFeeder = Iterator.continually(Map("items" -> getPayload()))
 
   private val payload: String =
     """
@@ -97,15 +97,15 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
 
 
 
-  private val scenarioFusion = scenario("AsynchronousTest")
-    .feed(externalOrderfeeder)
-    .feed(continuallyFeeder)
+  private val createB2BOrders = scenario("AsynchronousTest")
+    .feed(externalOrderIdfeeder)
+    .feed(medsFeeder)
     .exec(http("AsynchronousAPIs")
       .post("/api/outward/orders")
       .body(StringBody(payload))
       .check(status.is(200)))
 
   setUp(
-    scenarioFusion.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds))
+    createB2BOrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds))
   ).protocols(httpProtocol)
 }

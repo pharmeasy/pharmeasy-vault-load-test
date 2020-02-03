@@ -43,7 +43,7 @@ task loadTest(type: JavaExec) {
     ]
     main = "io.gatling.app.Gatling"
     args = [
-            "--simulation", "simulations." + System.getProperty("loadTestClass", "B2COrders"),
+            "--simulation", "simulations." + System.getProperty("loadTestClass", "B2BOrders"),
             "--results-folder", "gatling-results",
             "--binaries-folder", sourceSets.test.output.toString(),
             "--simulations-folder", sourceSets.test.scala.srcDirs
