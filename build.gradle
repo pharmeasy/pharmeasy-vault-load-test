@@ -31,6 +31,7 @@ dependencies {
     compile "org.json4s:json4s-jackson_2.12:3.6.7"
     compile group: 'org.reflections', name: 'reflections', version: '0.9.11'
     compile group: 'com.opencsv', name: 'opencsv', version: '5.0'
+    compile group: 'org.scala-tools', name: 'maven-scala-plugin', version: '2.11'
 }
 
 
@@ -43,14 +44,25 @@ task loadTest(type: JavaExec) {
     ]
     main = "io.gatling.app.Gatling"
     args = [
-            "--simulation", "simulations." + System.getProperty("loadTestClass", "B2BOrders"),
+            "--simulation", "simulations." + System.getProperty("loadTestClass", "B2COrders"),
             "--results-folder", "gatling-results",
             "--binaries-folder", sourceSets.test.output.toString(),
             "--simulations-folder", sourceSets.test.scala.srcDirs
     ]
 
+    def file1 = file('orderGroupId.csv');
+    if (file1.exists()) {
+        file1.delete();
+    }
+
+    def file2 = file('externalOrderId.csv');
+    if (file2.exists()) {
+        file2.delete();
+    }
+
     systemProperty('gatling.charting.indicators.lowerBound', '400')
     systemProperty('gatling.ahc.requestTimeout', System.getProperty('requestTimeout', '60000'))
+    systemProperty('gatling.ahc.handshakeTimeout', System.getProperty('handshakeTimeout', '60000'))
     systemProperties System.properties
 }
 

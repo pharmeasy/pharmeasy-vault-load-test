@@ -1,13 +1,13 @@
 package utils
 
-import java.io.{ FileInputStream, InputStreamReader }
+import java.io.{BufferedWriter, File, FileInputStream, FileWriter, InputStreamReader}
 import java.util.Collections
 
 import com.opencsv.CSVReader
 import org.apache.commons.lang3.RandomStringUtils
 import org.json4s._
 import org.json4s.jackson.JsonMethods
-import org.json4s.jackson.Serialization.{ read, write }
+import org.json4s.jackson.Serialization.{read, write}
 
 import scala.collection.JavaConverters._
 import scala.io.Source
@@ -53,6 +53,15 @@ object Utilities {
       List.empty
     } else {
       new CSVReader(new InputStreamReader(stream)).readAll.asScala.toList
+    }
+  }
+
+  def writeFile(filename: String, line: String, append: Boolean = true): Unit = {
+    synchronized {
+      val file = new File(filename)
+      val bw = new BufferedWriter(new FileWriter(file, append))
+      bw.write(line)
+      bw.close()
     }
   }
 

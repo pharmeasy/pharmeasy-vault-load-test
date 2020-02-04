@@ -3,6 +3,7 @@ package simulations
 import io.gatling.core.Predef._
 import io.gatling.core.feeder.Feeder
 import io.gatling.http.Predef.{http, _}
+import io.gatling.jsonpath.JsonPath
 import utils.Utilities._
 
 import scala.concurrent.duration._
@@ -96,14 +97,17 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
       |""".stripMargin
 
 
-
   private val createB2COrders = scenario("AsynchronousTest")
     .feed(externalOrderIdfeeder)
     .feed(medsFeeder)
     .exec(http("AsynchronousAPIs")
       .post("/api/outward/orders")
       .body(StringBody(payload))
-      .check(status.is(200)))
+      .check(status.is(200),jsonPath("$..externalOrderId").notNull.saveAs("externalOrderId")))
+    .exec(session => {
+      writeFile("externalOrderId.csv", session("externalOrderId").as[String] + "\n");
+      session
+    })
 
   setUp(
     createB2COrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds))

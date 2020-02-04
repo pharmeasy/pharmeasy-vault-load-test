@@ -2,7 +2,7 @@ package simulations
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef.{http, _}
-import utils.Utilities.{randomNumberBetweenRange, readCSV}
+import utils.Utilities._
 
 import scala.concurrent.duration._
 
@@ -20,22 +20,12 @@ class B2BOrders extends io.gatling.core.Predef.Simulation {
     .disableWarmUp
     .disableCaching
 
-  val csvFeeder = csv("orderItemId.csv").eager.random.circular
-  val start = 1
-  val end = 30
-  val rnd = new scala.util.Random
-  val randomFeeder = Iterator.continually(Map("qty" -> (start + rnd.nextInt((end - start) + 1))))
-  val retailer = csv("retailers.csv").eager.random.circular
+
+  val retailerFeeder = csv("retailers.csv").eager.random.circular
 
   val alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   val size = alpha.size
-
   def randStr(n: Int) = (1 to n).map(x => alpha(scala.util.Random.nextInt.abs % size)).mkString
-
-  val nameFeeder = Iterator.continually(Map("name" -> randStr(20)))
-
-  val str = randStr(20);
-
 
   private val medicinesData: List[Array[String]] = readCSV("orderItemId.csv")
 
@@ -52,7 +42,7 @@ class B2BOrders extends io.gatling.core.Predef.Simulation {
          |  }""".stripMargin).mkString(",\n")
   }
 
-  private val medsFeeder = Iterator.continually(Map("items" -> getPayload(50)))
+  private val medsFeeder = Iterator.continually(Map("items" -> getPayload(1)))
 
   private val payload: String =
     """
@@ -62,15 +52,21 @@ class B2BOrders extends io.gatling.core.Predef.Simulation {
       |  ]
       |}""".stripMargin
 
+
   private val createB2BOrders = scenario("AsynchronousTest")
-    .feed(retailer)
+    .feed(retailerFeeder)
     .feed(medsFeeder)
     .exec(http("AsynchronousAPIs")
       .post("/api/Distributors/405/Retailers/${retailerId}/placeOrder")
       .body(StringBody(payload))
-      .check(status.is(200)))
+      .check(status.is(200), jsonPath("$.orderGroupId").notNull.saveAs("orderGroupId")))
+    .exec(session => {
+      writeFile("orderGroupId.csv", session("orderGroupId").as[String] + "\n");
+      session
+    }
+    )
 
   setUp(
-    createB2BOrders.inject(rampUsers(System.getProperty("b2bRampUpUsers", "1").toInt) during (System.getProperty("b2bRampUpDuration", "2").toInt seconds))
+    createB2BOrders.inject(rampUsers(System.getProperty("b2bRampUpUsers", "40").toInt) during (System.getProperty("b2bRampUpDuration", "2").toInt seconds))
   ).protocols(httpProtocol)
 }
