@@ -14,7 +14,6 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
     .baseUrl("")
     .acceptHeader("application/json")
     .contentTypeHeader("application/json")
-    .authorizationHeader("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vb21zLmNvbSIsIm9tc1JvbGVJZCI6Niwib21zUm9sZSI6IkRJU1RSSUJVVE9SU1VQRVJTQUxFU01BTiIsIm9tc1VzZXJJZCI6MjU3MSwianRpIjoiNTlkOWUyNGUtMDk3OC00NjdkLWEyY2YtY2NkZGRkNzlmYjQyIiwiaWF0IjoxNTgwNzI1MTc0LCJleHAiOjE2MTE4MjkxNzR9.2uHTx4Nb_MBkTnbM5Bbm3m-oKVJRfgkyjIaTSxR_t-o")
     .header("source", "web")
     .header("version", "1.2.3")
     .disableWarmUp
@@ -141,14 +140,14 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
     .exec(session => {
       writeFile("orderGroupId.csv", session("orderGroupId").as[String] + "\n");
       session
-    }
-    )
+    })
 
   private val createB2COrders = scenario("AsynchronousTest")
     .feed(externalOrderIdfeeder)
     .feed(b2cMedsFeeder)
     .exec(http("AsynchronousAPIs")
-      .post("/api/outward/orders")
+      .post("https://qa2.thea.gomercury.in/api/outward/orders")
+      .header("Authorization", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwiZXhwIjoxNTgxMDczODg0LCJ1c2VyIjoiZGhydXYuY2hvdWRoYXJ5QHBoYXJtZWFzeS5pbiIsInRlbmFudCI6InRoMDE0In0.6x7bapjGARFb-0VbPfNQgf-Mjp98YaHif7-EIsSxWsjG2DmFSTL4JWAtaL2N37Wb_rT7OrGZ5P9JxMhWXw0DFw")
       .body(StringBody(b2CPayload))
       .check(status.is(200),jsonPath("$..externalOrderId").notNull.saveAs("externalOrderId")))
     .exec(session => {
@@ -158,6 +157,6 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
 
   setUp(
     createB2COrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds)),
-    createB2BOrders.inject(rampUsers(System.getProperty("b2bRampUpUsers", "40").toInt) during (System.getProperty("b2bRampUpDuration", "2").toInt seconds))
+    createB2BOrders.inject(rampUsers(System.getProperty("b2bRampUpUsers", "1").toInt) during (System.getProperty("b2bRampUpDuration", "2").toInt seconds))
   ).protocols(httpProtocol)
 }
