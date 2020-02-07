@@ -1,22 +1,56 @@
 package simulations
 
 import io.gatling.core.Predef._
-import io.gatling.core.feeder.Feeder
 import io.gatling.http.Predef.{http, _}
-import io.gatling.jsonpath.JsonPath
 import utils.Utilities._
 
 import scala.concurrent.duration._
 
-class B2COrders extends io.gatling.core.Predef.Simulation {
+class SCMOrders extends io.gatling.core.Predef.Simulation {
 
   private val random = scala.util.Random
 
-  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl("https://qa2.thea.gomercury.in")
+  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http
+    .baseUrl("")
     .acceptHeader("application/json")
     .contentTypeHeader("application/json")
-    .authorizationHeader("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwiZXhwIjoxNTgxMDczODg0LCJ1c2VyIjoiZGhydXYuY2hvdWRoYXJ5QHBoYXJtZWFzeS5pbiIsInRlbmFudCI6InRoMDE0In0.6x7bapjGARFb-0VbPfNQgf-Mjp98YaHif7-EIsSxWsjG2DmFSTL4JWAtaL2N37Wb_rT7OrGZ5P9JxMhWXw0DFw")
-    .disableWarmUp.disableCaching
+    .authorizationHeader("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vb21zLmNvbSIsIm9tc1JvbGVJZCI6Niwib21zUm9sZSI6IkRJU1RSSUJVVE9SU1VQRVJTQUxFU01BTiIsIm9tc1VzZXJJZCI6MjU3MSwianRpIjoiNTlkOWUyNGUtMDk3OC00NjdkLWEyY2YtY2NkZGRkNzlmYjQyIiwiaWF0IjoxNTgwNzI1MTc0LCJleHAiOjE2MTE4MjkxNzR9.2uHTx4Nb_MBkTnbM5Bbm3m-oKVJRfgkyjIaTSxR_t-o")
+    .header("source", "web")
+    .header("version", "1.2.3")
+    .disableWarmUp
+    .disableCaching
+
+
+  val retailerFeeder = csv("retailers.csv").eager.random.circular
+
+  val alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  val size = alpha.size
+  def randStr(n: Int) = (1 to n).map(x => alpha(scala.util.Random.nextInt.abs % size)).mkString
+
+  private val medicinesData: List[Array[String]] = readCSV("orderItemId.csv")
+
+  private def getPayload(num: Int = 3): String = {
+    val shuffled = random.shuffle(medicinesData)
+    val name = randStr(20);
+    val qty = 10
+    0.to(num - 1).map(index => shuffled(index)).map(e =>
+      s"""
+         |  {
+         |    "id":${e(0)},
+         |    "quantity": ${qty},
+         |    "name": "${name}"
+         |  }""".stripMargin).mkString(",\n")
+  }
+
+  private val B2BMedsFeeder = Iterator.continually(Map("items" -> getPayload(1)))
+
+  private val b2bPayload: String =
+    """
+      |{
+      |  "orderItems": [
+      |    ${items}
+      |  ]
+      |}""".stripMargin
 
   private val externalOrderIdfeeder = Iterator.continually(Map("externalOrder" -> s"AutoLoad-${scala.math.abs(java.util.UUID.randomUUID.getMostSignificantBits)}"))
 
@@ -37,7 +71,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
 
   private val b2cMedsFeeder = Iterator.continually(Map("items" -> getB2CPayload()))
 
-  private val payload: String =
+  private val b2CPayload: String =
     """
       |{
       |    "id":null,
@@ -96,13 +130,26 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
       |}
       |""".stripMargin
 
+  private val createB2BOrders = scenario("AsynchronousTest")
+    .feed(retailerFeeder)
+    .feed(B2BMedsFeeder)
+    .exec(http("AsynchronousAPIs")
+      .post("https://staging.retailio.in/api/Distributors/1670/Retailers/${retailerId}/placeOrder")
+      .header("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vb21zLmNvbSIsIm9tc1JvbGVJZCI6Niwib21zUm9sZSI6IkRJU1RSSUJVVE9SU1VQRVJTQUxFU01BTiIsIm9tc1VzZXJJZCI6MjU3MSwianRpIjoiNTlkOWUyNGUtMDk3OC00NjdkLWEyY2YtY2NkZGRkNzlmYjQyIiwiaWF0IjoxNTgwNzI1MTc0LCJleHAiOjE2MTE4MjkxNzR9.2uHTx4Nb_MBkTnbM5Bbm3m-oKVJRfgkyjIaTSxR_t-o")
+      .body(StringBody(b2bPayload))
+      .check(status.is(200), jsonPath("$.orderGroupId").notNull.saveAs("orderGroupId")))
+    .exec(session => {
+      writeFile("orderGroupId.csv", session("orderGroupId").as[String] + "\n");
+      session
+    }
+    )
 
   private val createB2COrders = scenario("AsynchronousTest")
     .feed(externalOrderIdfeeder)
     .feed(b2cMedsFeeder)
     .exec(http("AsynchronousAPIs")
       .post("/api/outward/orders")
-      .body(StringBody(payload))
+      .body(StringBody(b2CPayload))
       .check(status.is(200),jsonPath("$..externalOrderId").notNull.saveAs("externalOrderId")))
     .exec(session => {
       writeFile("externalOrderId.csv", session("externalOrderId").as[String] + "\n");
@@ -110,6 +157,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
     })
 
   setUp(
-    createB2COrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds))
+    createB2COrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds)),
+    createB2BOrders.inject(rampUsers(System.getProperty("b2bRampUpUsers", "40").toInt) during (System.getProperty("b2bRampUpDuration", "2").toInt seconds))
   ).protocols(httpProtocol)
 }
