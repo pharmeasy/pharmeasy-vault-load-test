@@ -12,10 +12,10 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
 
   private val random = scala.util.Random
 
-  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl("https://qa2.thea.gomercury.in")
+  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl("https://staging.thea.gomercury.in")
     .acceptHeader("application/json")
     .contentTypeHeader("application/json")
-    .authorizationHeader("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwiZXhwIjoxNTgxMDczODg0LCJ1c2VyIjoiZGhydXYuY2hvdWRoYXJ5QHBoYXJtZWFzeS5pbiIsInRlbmFudCI6InRoMDE0In0.6x7bapjGARFb-0VbPfNQgf-Mjp98YaHif7-EIsSxWsjG2DmFSTL4JWAtaL2N37Wb_rT7OrGZ5P9JxMhWXw0DFw")
+    .authorizationHeader("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwidXNlciI6ImRocnV2LmNob3VkaGFyeUBwaGFybWVhc3kuaW4iLCJ0ZW5hbnQiOiJ0aDAxNCJ9.d2UkKMP5dahsfX3pf_YNuOhakDzfqMVv_dwrwPehKMiuVQwFnx5EqIn3O9GGMgapnbnSGkUu06YqX4o3__6Khw")
     .disableWarmUp.disableCaching
 
   private val externalOrderIdfeeder = Iterator.continually(Map("externalOrder" -> s"AutoLoad-${scala.math.abs(java.util.UUID.randomUUID.getMostSignificantBits)}"))

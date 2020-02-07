@@ -129,12 +129,12 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
       |}
       |""".stripMargin
 
-  private val createB2BOrders = scenario("AsynchronousTest")
+  private val createB2BOrders = scenario("B2BTest")
     .feed(retailerFeeder)
     .feed(B2BMedsFeeder)
     .exec(http("AsynchronousAPIs")
       .post("https://staging.retailio.in/api/Distributors/1670/Retailers/${retailerId}/placeOrder")
-      .header("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vb21zLmNvbSIsIm9tc1JvbGVJZCI6Niwib21zUm9sZSI6IkRJU1RSSUJVVE9SU1VQRVJTQUxFU01BTiIsIm9tc1VzZXJJZCI6MjU3MSwianRpIjoiNTlkOWUyNGUtMDk3OC00NjdkLWEyY2YtY2NkZGRkNzlmYjQyIiwiaWF0IjoxNTgwNzI1MTc0LCJleHAiOjE2MTE4MjkxNzR9.2uHTx4Nb_MBkTnbM5Bbm3m-oKVJRfgkyjIaTSxR_t-o")
+      .header("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vb21zLmNvbSIsIm9tc1JvbGVJZCI6Niwib21zUm9sZSI6IkRJU1RSSUJVVE9SU1VQRVJTQUxFU01BTiIsIm9tc1VzZXJJZCI6Mjg3NCwianRpIjoiODczZTlhOGQtYTcyYy00MTIyLWJjOWYtODE3Y2Q4ZDgxMDFjIiwiaWF0IjoxNTgwODIwMDEwLCJleHAiOjE2MTE5MjQwMTB9.u_JWKY4QxbjbYCUV0zB-e-qFz6gsLSm-pyA-Ehzyzbc\ncookie: mp_67769c00e598aec9b31e7e6024ff0a0b_mixpanel=%7B%22distinct_id%22%3A%20%221700a885b5997c-0e29edf2d8ff75-39617b0f-13c680-1700a885b5a559%22%2C%22%24device_id%22%3A%20%221700a885b5997c-0e29edf2d8ff75-39617b0f-13c680-1700a885b5a559%22%2C%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%7D; mp_130bd02cca41cfbfe0e1a114e6dee2b1_mixpanel=%7B%22distinct_id%22%3A%20%221700a885b6612f-0a4815416b1751-39617b0f-13c680-1700a885b6790f%22%2C%22%24device_id%22%3A%20%221700a885b6612f-0a4815416b1751-39617b0f-13c680-1700a885b6790f%22%2C%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%7D; amplitude_id_3c27150f9653ce05775c537209a3ee40retailio.in=eyJkZXZpY2VJZCI6IjdlMDViYWZlLTc2NmItNGUyNi1iZGE4LTMxYzViM2ZiZjhjMlIiLCJ1c2VySWQiOiIyODc0Iiwib3B0T3V0IjpmYWxzZSwic2Vzc2lvbklkIjoxNTgxMDc3MTIzODA0LCJsYXN0RXZlbnRUaW1lIjoxNTgxMDc3MTI1MzI3LCJldmVudElkIjoxODIsImlkZW50aWZ5SWQiOjMwLCJzZXF1ZW5jZU51bWJlciI6MjEyfQ==")
       .body(StringBody(b2bPayload))
       .check(status.is(200), jsonPath("$.orderGroupId").notNull.saveAs("orderGroupId")))
     .exec(session => {
@@ -142,12 +142,12 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
       session
     })
 
-  private val createB2COrders = scenario("AsynchronousTest")
+  private val createB2COrders = scenario("B2CTest")
     .feed(externalOrderIdfeeder)
     .feed(b2cMedsFeeder)
     .exec(http("AsynchronousAPIs")
-      .post("https://qa2.thea.gomercury.in/api/outward/orders")
-      .header("Authorization", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwiZXhwIjoxNTgxMDczODg0LCJ1c2VyIjoiZGhydXYuY2hvdWRoYXJ5QHBoYXJtZWFzeS5pbiIsInRlbmFudCI6InRoMDE0In0.6x7bapjGARFb-0VbPfNQgf-Mjp98YaHif7-EIsSxWsjG2DmFSTL4JWAtaL2N37Wb_rT7OrGZ5P9JxMhWXw0DFw")
+      .post("https://staging.thea.gomercury.in/api/outward/orders")
+      .header("Authorization", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwidXNlciI6ImRocnV2LmNob3VkaGFyeUBwaGFybWVhc3kuaW4iLCJ0ZW5hbnQiOiJ0aDAxNCJ9.d2UkKMP5dahsfX3pf_YNuOhakDzfqMVv_dwrwPehKMiuVQwFnx5EqIn3O9GGMgapnbnSGkUu06YqX4o3__6Khw")
       .body(StringBody(b2CPayload))
       .check(status.is(200),jsonPath("$..externalOrderId").notNull.saveAs("externalOrderId")))
     .exec(session => {
