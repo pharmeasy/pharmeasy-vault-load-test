@@ -41,7 +41,7 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
          |  }""".stripMargin).mkString(",\n")
   }
 
-  private val B2BMedsFeeder = Iterator.continually(Map("items" -> getPayload(1)))
+  private val B2BMedsFeeder = Iterator.continually(Map("items" -> getPayload(50)))
 
   private val b2bPayload: String =
     """
