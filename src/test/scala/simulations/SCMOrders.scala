@@ -86,7 +86,7 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
       |    "customerEmail":"qwerty@gmail.com",
       |    "patientName":"Kiran",
       |    "doctorName":"Deep",
-      |    "storeId":"065b642a-26e5-4be3-ac29-01d7ee605a46",
+      |    "storeId":"2800af35-0b7f-4324-9cf8-76143baceb72",
       |    "storeName":"Laxmi  (Mahadevapura)",
       |    "warehouseId":2,
       |    "pickerTaskId":null,
