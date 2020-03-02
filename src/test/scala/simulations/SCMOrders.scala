@@ -147,7 +147,7 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
     .feed(b2cMedsFeeder)
     .exec(http("AsynchronousAPIs")
       .post("https://staging.thea.gomercury.in/api/outward/orders")
-      .header("Authorization", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwidXNlciI6ImRocnV2LmNob3VkaGFyeUBwaGFybWVhc3kuaW4iLCJ0ZW5hbnQiOiJ0aDAxNCJ9.d2UkKMP5dahsfX3pf_YNuOhakDzfqMVv_dwrwPehKMiuVQwFnx5EqIn3O9GGMgapnbnSGkUu06YqX4o3__6Khw")
+      .header("Authorization", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiOWVmNjY0NjUtNDc0Yi00ZmFhLWE1N2EtNDU1NTdhYWZiOTg3IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIzNTRhMTNlYi1iZDlkLTRhNmMtYTAyYi04YWFjMGRjNTgxNWQiLCJzY29wZXMiOlsic3RvcmUtcGhhcm1hY2lzdCIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwidXNlciI6ImRocnV2LmNob3VkaGFyeUBwaGFybWVhc3kuaW4iLCJ0ZW5hbnQiOiJ0aDEyNCJ9.IvWuaiw1yilfDitbwKMjS0SEoOo3ZBDHdw8asA-BMfbzzKxkQITqKjdTXXRe4IYubYaTFSHW4Jp9xx6HcJk4hA")
       .body(StringBody(b2CPayload))
       .check(status.is(200),jsonPath("$..externalOrderId").notNull.saveAs("externalOrderId")))
     .exec(session => {
