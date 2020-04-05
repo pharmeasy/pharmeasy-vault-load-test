@@ -5,10 +5,15 @@ apply plugin: "eclipse"
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
+def maven_url = System.getenv("MAVEN_URL") ?: "${maven_url}"
+def maven_username = System.getenv("MAVEN_USERNAME") ?: new String("${maven_username}".decodeBase64())
+def maven_password = System.getenv("MAVEN_PASSWORD") ?: new String("${maven_password}".decodeBase64())
+
 repositories {
     jcenter()
-    maven { url "http://repo.spring.io/libs-snapshot" }
+    maven { url maven_url }
 }
+
 
 configurations {
     developmentOnly
@@ -32,6 +37,7 @@ dependencies {
     compile group: 'org.reflections', name: 'reflections', version: '0.9.11'
     compile group: 'com.opencsv', name: 'opencsv', version: '5.0'
     compile group: 'org.scala-tools', name: 'maven-scala-plugin', version: '2.11'
+    compile "in.pharmeasy.automation:pharmeasy-api-utils:${frmk_version}"
 }
 
 
@@ -44,7 +50,7 @@ task loadTest(type: JavaExec) {
     ]
     main = "io.gatling.app.Gatling"
     args = [
-            "--simulation", "simulations." + System.getProperty("loadTestClass", "SCMOrders"),
+            "--simulation", "simulations." + System.getProperty("loadTestClass", "B2COrders"),
             "--results-folder", "gatling-results",
             "--binaries-folder", sourceSets.test.output.toString(),
             "--simulations-folder", sourceSets.test.scala.srcDirs
