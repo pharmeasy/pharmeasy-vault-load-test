@@ -2,9 +2,9 @@ package simulations
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef.{http, _}
-import utils.Utilities._
 
 import scala.concurrent.duration._
+import newUtilities.newUtilities
 
 class SCMOrders extends io.gatling.core.Predef.Simulation {
 
@@ -26,7 +26,7 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
   val size = alpha.size
   def randStr(n: Int) = (1 to n).map(x => alpha(scala.util.Random.nextInt.abs % size)).mkString
 
-  private val medicinesData: List[Array[String]] = readCSV("orderItemId.csv")
+  private val medicinesData: List[Array[String]] = newUtilities.readCSV("orderItemId.csv")
 
   private def getPayload(num: Int = 3): String = {
     val shuffled = random.shuffle(medicinesData)
@@ -53,11 +53,11 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
 
   private val externalOrderIdfeeder = Iterator.continually(Map("externalOrder" -> s"AutoLoad-${scala.math.abs(java.util.UUID.randomUUID.getMostSignificantBits)}"))
 
-  private val b2cMedicinesData: List[Array[String]] = readCSV("b2c_meds.csv")
+  private val b2cMedicinesData: List[Array[String]] = newUtilities.readCSV("b2c_meds.csv")
 
   private def getB2CPayload(max: Int = 3): String = {
     val shuffled = random.shuffle(b2cMedicinesData)
-    val num = randomNumberBetweenRange(1, max)
+    val num = newUtilities.randomNumberBetweenRange(1, max)
     0.to(num - 1).map(index => shuffled(index)).map(e =>
       s"""
          |      {
@@ -138,7 +138,7 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
       .body(StringBody(b2bPayload))
       .check(status.is(200), jsonPath("$.orderGroupId").notNull.saveAs("orderGroupId")))
     .exec(session => {
-      writeFile("orderGroupId.csv", session("orderGroupId").as[String] + "\n");
+      newUtilities.writeFile("orderGroupId.csv", session("orderGroupId").as[String] + "\n");
       session
     })
 
@@ -151,7 +151,7 @@ class SCMOrders extends io.gatling.core.Predef.Simulation {
       .body(StringBody(b2CPayload))
       .check(status.is(200),jsonPath("$..externalOrderId").notNull.saveAs("externalOrderId")))
     .exec(session => {
-      writeFile("externalOrderId.csv", session("externalOrderId").as[String] + "\n");
+      newUtilities.writeFile("externalOrderId.csv", session("externalOrderId").as[String] + "\n");
       session
     })
 

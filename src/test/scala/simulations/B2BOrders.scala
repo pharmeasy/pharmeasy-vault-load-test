@@ -2,9 +2,9 @@ package simulations
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef.{http, _}
-import utils.Utilities._
 
 import scala.concurrent.duration._
+import newUtilities.newUtilities
 
 class B2BOrders extends io.gatling.core.Predef.Simulation {
 
@@ -27,7 +27,7 @@ class B2BOrders extends io.gatling.core.Predef.Simulation {
   val size = alpha.size
   def randStr(n: Int) = (1 to n).map(x => alpha(scala.util.Random.nextInt.abs % size)).mkString
 
-  private val medicinesData: List[Array[String]] = readCSV("orderItemId.csv")
+  private val medicinesData: List[Array[String]] = newUtilities.readCSV("orderItemId.csv")
 
   private def getPayload(num: Int = 3): String = {
     val shuffled = random.shuffle(medicinesData)
@@ -61,7 +61,7 @@ class B2BOrders extends io.gatling.core.Predef.Simulation {
       .body(StringBody(payload))
       .check(status.is(200), jsonPath("$.orderGroupId").notNull.saveAs("orderGroupId")))
     .exec(session => {
-      writeFile("orderGroupId.csv", session("orderGroupId").as[String] + "\n");
+      newUtilities.writeFile("orderGroupId.csv", session("orderGroupId").as[String] + "\n");
       session
     }
     )
