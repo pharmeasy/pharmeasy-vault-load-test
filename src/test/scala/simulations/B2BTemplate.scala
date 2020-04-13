@@ -1,10 +1,9 @@
 package simulations
 
+import actions.actions.B2BOrderProcessingActions
 import actions.scm.CreateB2BOrderPayload._
-import actions.B2BOrderProcessingActions._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef.http
-import newUtilities.TokenGeneration
 
 import scala.concurrent.duration._
 
@@ -22,8 +21,8 @@ class B2BTemplate extends Simulation {
 
   private val createB2BOrdersScenario = scenario("B2BCreateOrder")
     .feed(b2bMedsFeeder)
-    .exec(createB2BOrders())
-    .exec(fetchOrderId())
+    .exec(B2BOrderProcessingActions.createB2BOrders())
+    .exec(B2BOrderProcessingActions.fetchOrderId())
 
 
 

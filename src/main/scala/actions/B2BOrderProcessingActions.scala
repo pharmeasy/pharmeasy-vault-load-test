@@ -1,7 +1,7 @@
 package actions
 
+package actions
 import scm.CreateB2BOrderPayload
-import actions.ConsumerActions.getFromSession
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import utils.ConfigManager._
@@ -23,7 +23,7 @@ object B2BOrderProcessingActions extends BaseActions {
   def fetchOrderId(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("Fetch Order Id")
       .get(session => baseUrl + s"/omsOrder/customerOrder/${getFromSession(session, "customerId", "")}")
-      .header("Authorization", TokenGeneration.getDefaultToken(thea))
+      .header("Authorization", TokenGeneration.getDefaultToken())
       .asJson
       .check(
         status.is(200),
