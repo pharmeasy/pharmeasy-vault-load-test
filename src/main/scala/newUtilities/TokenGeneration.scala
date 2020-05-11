@@ -7,10 +7,25 @@ import in.pharmeasy.utils.entry.JWTAuthHeaderPayload
 
 object TokenGeneration {
 
-  private val javaWTGenerator: JavaWTGenerator = JavaWTGenerator.getInstance
-  private val HEADER: String = "{\"typ\":\"JWT\",\"alg\":\"HS512\"}"
-  private val SECRET: String = "mercury@2018"
-  private val DEFAULT_THEA: String = "th032"
+
+  private var javaWTGenerator: JavaWTGenerator = JavaWTGenerator.getInstance
+  private var HEADER: String = "{\"typ\":\"JWT\",\"alg\":\"HS512\"}"
+  private var SECRET: String = "mercury@2018"
+  private var DEFAULT_THEA:String = "th124"
+
+//  def generateToken(payload: JWTAuthHeaderPayload): String = {
+//    val token =
+//      javaWTGenerator.encode(JWTAlgorithm.HMAC512, HEADER, payload, SECRET)
+//    token
+//  }
+
+  def getDefaultToken(): String = {
+    val token: String = javaWTGenerator.encode(JWTAlgorithm.HMAC512,
+      HEADER,
+      getMercuryDefaultAuthPayload(DEFAULT_THEA),
+      SECRET)
+    token
+  }
 
   def generateToken(payload: JWTAuthHeaderPayload) = javaWTGenerator.encode(JWTAlgorithm.HMAC512, HEADER, payload, SECRET)
 
