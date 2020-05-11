@@ -1,10 +1,11 @@
 package actions.scm
 
-import actions.OrderProcessingActions.getFromSession
+
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 import newUtilities.newUtilities._
-import io.gatling.core.session.Session
+
+import scala.collection.mutable.ArrayBuffer
 
 object OrderPayloadCreation {
 
@@ -49,7 +50,7 @@ object OrderPayloadCreation {
     "qwerty@gmail.com",
     "Kiran",
     "Deep",
-    "c365958c-ed88-4218-97fe-b9b5844810fc",
+    "2800af35-0b7f-4324-9cf8-76143baceb72",
     "SCM",
     2,
     null,
@@ -85,7 +86,7 @@ object OrderPayloadCreation {
     return write(orderPayload).replace("\"StringReplace\"", "${items}")
   }
 
-  def multiPickingPayload = MultiPickingConfigPayload(
+  val multiPickingPayload = MultiPickingConfigPayload(
     1,
     1,
     5,
@@ -97,7 +98,7 @@ object OrderPayloadCreation {
     return write(multiPickingPayload)
   }
 
-  def prioritisePickerTaskPayload = PrioritisePickerTaskPayload(
+  val prioritisePickerTaskPayload = PrioritisePickerTaskPayload(
     "StringReplace"
   )
 
@@ -105,16 +106,78 @@ object OrderPayloadCreation {
     return write(prioritisePickerTaskPayload).replace("StringReplace", refId)
   }
 
-  def signInAppPayload = SignInPickerAppPayload(
+  val generateBillPayload = GenerateBillPayload(
+    "StringReplace",
+    null
+  )
+
+  def getGenerateBillPayload(refId: String): String = {
+    return write(generateBillPayload).replace("StringReplace", refId)
+  }
+
+  val signInAppPayload = SignInPickerAppPayload(
     "picker",
     "mercury",
     "c0Qw92O1-ig:APA91bHTXuRTFr4LXs6Jn9cfiR367P7GhiwzEeDitnLm5co0XrpIOVA4LHGKMIbiCADycVrZTLWzkFrjMdoAc12JSmPafL0Q_Fed-8sGGLnx_fspLzG9XGBiXct5FtvZFWSsv-GoWCtM",
     "12345",
-    "akan105"
+    "abhi01"
   )
 
   def getSignInAppPayload(): String = {
     return write(signInAppPayload)
   }
+
+  val pickTrayPayload = PickTrayPayload("StringReplace")
+
+  def getPickTrayPayload(trayId: String): String = {
+    return write(pickTrayPayload).replace("StringReplace", trayId)
+  }
+
+  val taskPickedPayload = AggregateTaskPickedPayload("PICKED")
+
+  def getTaskPickedPayload(): String = {
+    return write(taskPickedPayload)
+  }
+
+  val barcodePayload = BarcodePayload(
+    "barcode"
+  )
+
+  def getBarCodePayload(barcode: String): BarcodePayload = {
+    return write(barcodePayload).replace("barcode", barcode).asInstanceOf[BarcodePayload]
+  }
+
+  def getPickedItemsPayload(bin: String, ucode: String, barcodes: List[String]): String = {
+    val pickedItems = ArrayBuffer[BarcodePayload]()
+    for (barcode <- barcodes) {
+      pickedItems += (getBarCodePayload(barcode))
+    }
+    val pickedItemsPayload = PickedItemsPayload(bin, 1090909, List(), "GLYCIPHAGE 850MG TAB", 3, 10, pickedItems, "IN_TRAY", ucode)
+    return write(pickedItemsPayload)
+  }
+
+
+  def getPickerTaskZonePayload(aggregatePickerTaskId: String): PickerTaskZones = {
+    val pickerTaskZone = PickerTaskZones(aggregatePickerTaskId.toLong, null, "COMPLETED", null)
+    return write(pickerTaskZone).asInstanceOf[PickerTaskZones]
+  }
+
+  def getScanZonePayload(aggregatePickerTaskId: String): String = {
+    val scanZones = ArrayBuffer[PickerTaskZones]()
+    scanZones += (getPickerTaskZonePayload(aggregatePickerTaskId))
+    return write(ScanZonePayload(scanZones))
+  }
+
+  def getCompletePickedItemsPayload(bin: String, ucode: String, aggregatePickerTaskId: String): String = {
+    val completePickedItemsPayload = CompletePickedItemsPayload(
+      bin,
+      aggregatePickerTaskId.toLong,
+      "",
+      "IN_PROGRESS",
+      ucode
+    )
+    return write(completePickedItemsPayload)
+  }
+
 
 }
