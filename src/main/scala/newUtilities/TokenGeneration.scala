@@ -13,19 +13,6 @@ object TokenGeneration {
   private var SECRET: String = "mercury@2018"
   private var DEFAULT_THEA:String = "th124"
 
-//  def generateToken(payload: JWTAuthHeaderPayload): String = {
-//    val token =
-//      javaWTGenerator.encode(JWTAlgorithm.HMAC512, HEADER, payload, SECRET)
-//    token
-//  }
-
-  def getDefaultToken(): String = {
-    val token: String = javaWTGenerator.encode(JWTAlgorithm.HMAC512,
-      HEADER,
-      getMercuryDefaultAuthPayload(DEFAULT_THEA),
-      SECRET)
-    token
-  }
 
   def generateToken(payload: JWTAuthHeaderPayload) = javaWTGenerator.encode(JWTAlgorithm.HMAC512, HEADER, payload, SECRET)
 
@@ -60,5 +47,23 @@ def getPickerDefaultAuthPayload(thea: String = DEFAULT_THEA): JWTAuthHeaderPaylo
     payload.setTenant(String.valueOf(thea))
     payload
   }
-}
 
+  def getPharmacistDefaultAuthPayload(thea: String = DEFAULT_THEA): JWTAuthHeaderPayload = {
+    val payload: JWTAuthHeaderPayload = new JWTAuthHeaderPayload
+    payload.setApp("pharmacist")
+    payload.setAudience("mercury")
+    payload.setUid(UUID.randomUUID.toString)
+    payload.setIssuer("PharmEasy.in")
+    payload.setName("Automation Picker User")
+    payload.setStore("")
+    payload.setScopes(Arrays.asList("store-billing-user",
+    "store-pharmacist",
+    "wh-billing-user",
+    "wh-gate-pass-user",
+    "wh-signatory",
+    "wh-super-admin"))
+    payload.setUser("Automation.User@gmail.com")
+    payload.setTenant(String.valueOf(thea))
+    payload
+  }
+}

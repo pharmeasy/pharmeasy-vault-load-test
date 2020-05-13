@@ -17,7 +17,7 @@ class TemplateB2COrders extends io.gatling.core.Predef.Simulation{
   val scn = scenario(name)
     .feed(Feeders.externalOrderIdfeeder)
     .feed(Feeders.b2cMedsFeeder)
-    .exec(OrderProcessingActions.CreateB2BOrders())
+    .exec(OrderProcessingActions.CreateB2COrders())
 
   setUp(
     scn.inject(rampUsers(rampUpUsers) during (rampUpDuration))

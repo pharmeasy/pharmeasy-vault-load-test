@@ -74,7 +74,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
     .exec(OrderProcessingActions.pickedItems())
     .exec(OrderProcessingActions.completePickedItems())
     .exec(OrderProcessingActions.scanZone())
-    .exec(OrderProcessingActions.generateBill())
+   // .exec(OrderProcessingActions.generateBill())
 
   setUp(
     createB2COrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "2").toInt seconds))
