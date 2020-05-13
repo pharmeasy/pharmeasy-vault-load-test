@@ -1,5 +1,6 @@
 package actions.scm
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 case class PickedItemsPayload(

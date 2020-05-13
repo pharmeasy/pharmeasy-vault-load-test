@@ -5,6 +5,7 @@ import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 import newUtilities.newUtilities._
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 object OrderPayloadCreation {
@@ -13,10 +14,19 @@ object OrderPayloadCreation {
   implicit val formats = DefaultFormats
 
   private val b2cMedicinesData: List[Array[String]] = readCSV("b2c_meds.csv")
+  private val trayData: List[Array[String]] = readCSV("tray.csv")
+
+  def getTray(count: Int): String = {
+    val shuffled = trayData
+    println(shuffled)
+    val data = shuffled(count)
+    println(data(0).toString)
+    data(0).toString
+  }
 
   private def getB2CPayload(max: Int = 2): List[Item] = {
     val shuffled = random.shuffle(b2cMedicinesData)
-    val num = randomNumberBetweenRange(1, max)
+    val num = 1;randomNumberBetweenRange(1, max)
     var items = List[Item]()
     for (a <- 0 to num - 1) {
       val data = shuffled(a);
@@ -94,6 +104,7 @@ object OrderPayloadCreation {
     "NOT_APPLICABLE"
   )
 
+
   def getMultiPickingConfigPayload(): String = {
     return write(multiPickingPayload)
   }
@@ -120,7 +131,7 @@ object OrderPayloadCreation {
     "mercury",
     "c0Qw92O1-ig:APA91bHTXuRTFr4LXs6Jn9cfiR367P7GhiwzEeDitnLm5co0XrpIOVA4LHGKMIbiCADycVrZTLWzkFrjMdoAc12JSmPafL0Q_Fed-8sGGLnx_fspLzG9XGBiXct5FtvZFWSsv-GoWCtM",
     "12345",
-    "abhi01"
+    "pick_ak39"
   )
 
   def getSignInAppPayload(): String = {
@@ -143,17 +154,25 @@ object OrderPayloadCreation {
     "barcode"
   )
 
-  def getBarCodePayload(barcode: String): BarcodePayload = {
-    return write(barcodePayload).replace("barcode", barcode).asInstanceOf[BarcodePayload]
+  def getBarCodePayload(barcode: String): String = {
+    val barCodeStr = barcode.replace("Vector(", "").replace(")", "").trim
+    val response = write(barcodePayload).replace("barcode", barCodeStr)
+    println(response)
+    response
   }
 
-  def getPickedItemsPayload(bin: String, ucode: String, barcodes: List[String]): String = {
-    val pickedItems = ArrayBuffer[BarcodePayload]()
+  def getPickedItemsPayload(bin: String, ucode: String, barcodesStr: String): String = {
+    val pickedItems= ArrayBuffer[BarcodePayload]()
+    val barcodes: Array[String] = barcodesStr.split(",")
     for (barcode <- barcodes) {
-      pickedItems += (getBarCodePayload(barcode))
+      pickedItems+=BarcodePayload(barcode.replace("Vector(", "").replace(")", "").trim)
     }
     val pickedItemsPayload = PickedItemsPayload(bin, 1090909, List(), "GLYCIPHAGE 850MG TAB", 3, 10, pickedItems, "IN_TRAY", ucode)
-    return write(pickedItemsPayload)
+
+    val abc = write(pickedItemsPayload)
+    println("Payload                  "+abc)
+    return abc
+
   }
 
 
@@ -164,7 +183,7 @@ object OrderPayloadCreation {
 
   def getScanZonePayload(aggregatePickerTaskId: String): String = {
     val scanZones = ArrayBuffer[PickerTaskZones]()
-    scanZones += (getPickerTaskZonePayload(aggregatePickerTaskId))
+    scanZones += PickerTaskZones(aggregatePickerTaskId.toLong, null, "COMPLETED", null)
     return write(ScanZonePayload(scanZones))
   }
 
