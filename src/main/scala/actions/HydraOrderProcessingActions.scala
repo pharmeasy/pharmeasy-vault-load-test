@@ -3,7 +3,6 @@ package actions
 import actions.hydra.{HydraOrderCreation, HydraOrderUpdate}
 import io.gatling.core.Predef.{jsonPath, _}
 import io.gatling.core.session.Session
-import io.gatling.core.structure.ChainBuilder
 import io.gatling.http.Predef._
 import newUtilities.{TokenGeneration, newConfigManager}
 import org.json4s.DefaultFormats
@@ -62,8 +61,13 @@ object HydraOrderProcessingActions {
       .check(
         status.is(200))
 
-  def Update(baseUrl: String = newConfigManager.getString("hydra.base_url"), updatePayload: String): ChainBuilder = {
-    return exec(updateOrder(baseUrl, updatePayload)).exitHereIfFailed.exec(GetById())
+  val statusCount = new java.util.concurrent.ConcurrentHashMap[String, Long]()
+
+  def update(baseUrl: String = newConfigManager.getString("hydra.base_url"), updatePayload: String, key: String) = {
+    exec(updateOrder(baseUrl, updatePayload)).exec(session => {
+      statusCount.put(key, if (statusCount.containsKey(key)) (statusCount.get(key) + 1) else 1)
+      session
+    }).exitHereIfFailed.exec(GetById())
   }
 
   def continueNew(baseUrl: String = newConfigManager.getString("hydra.base_url")) = {
@@ -71,24 +75,24 @@ object HydraOrderProcessingActions {
       !(getFromSession(session, "status").equals("DELIVERED")))(
       doSwitch(session => getFromSession(session, "status"))(
         "CREATED" -> randomSwitch(
-          90.0 -> Update(baseUrl, HydraOrderUpdate.getAccepted()),
-          5.0 -> Update(baseUrl, HydraOrderUpdate.getRejected()),
-          5.0 -> Update(baseUrl, HydraOrderUpdate.getCancelled()),
+          90.0 -> update(baseUrl, HydraOrderUpdate.getAccepted(), "created-accepted"),
+          5.0 -> update(baseUrl, HydraOrderUpdate.getRejected(), "created-rejected"),
+          5.0 -> update(baseUrl, HydraOrderUpdate.getCancelled(), "created-cancelled"),
         ),
         "ACCEPTED" -> randomSwitch(
-          70.0 -> Update(baseUrl, HydraOrderUpdate.getBilled()),
-          20.0 -> Update(baseUrl, HydraOrderUpdate.getOnHold()),
-          10.0 -> Update(baseUrl, HydraOrderUpdate.getCancelled()),
+          70.0 -> update(baseUrl, HydraOrderUpdate.getBilled(), "accepted-billed"),
+          20.0 -> update(baseUrl, HydraOrderUpdate.getOnHold(), "accepted-on_hold"),
+          10.0 -> update(baseUrl, HydraOrderUpdate.getCancelled(), "accepted-cancelled"),
         ),
         "BILLED" -> randomSwitch(
-          80.0 -> Update(baseUrl, HydraOrderUpdate.getRFD()),
-          20.0 -> Update(baseUrl, HydraOrderUpdate.getCancelled()),
+          80.0 -> update(baseUrl, HydraOrderUpdate.getRFD(), "billed-rfd"),
+          20.0 -> update(baseUrl, HydraOrderUpdate.getCancelled(), "billed-cancelled"),
         ),
         "ON_HOLD" -> randomSwitch(
-          80.0 -> Update(baseUrl, HydraOrderUpdate.getBilled()),
-          20.0 -> Update(baseUrl, HydraOrderUpdate.getCancelled()),
+          80.0 -> update(baseUrl, HydraOrderUpdate.getBilled(), "on_hold-billed"),
+          20.0 -> update(baseUrl, HydraOrderUpdate.getCancelled(), "on_hold-cancelled"),
         ),
-        "READY_FOR_DISPATCH" -> Update(baseUrl, HydraOrderUpdate.getDelivered())
+        "READY_FOR_DISPATCH" -> update(baseUrl, HydraOrderUpdate.getDelivered(), "ready_for_dispatch-delivered")
       )
     )
   }

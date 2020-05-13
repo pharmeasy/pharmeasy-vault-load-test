@@ -18,9 +18,8 @@ class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation {
 
   private val fetchOrderDelayStartInSeconds = 5
 
-  private val vector = new java.util.LinkedList[String]
+  private val vector = new java.util.Vector[String]
 
-  private val redisClient = new com.redis.RedisClient();
 
   val createOrder = scenario("Create Order")
     .feed(hydraRetailerIds)
@@ -52,5 +51,15 @@ class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation {
     createOrder.inject(rampUsers(rampUpUsers) during (rampUpDuration)) protocols (protocol),
     updateOrder.inject(rampUsers(rampUpUsers) during (rampUpDuration)) protocols (protocol)
   )
+
+  sys.addShutdownHook({
+    println("--------------------------------------")
+    println("---------- DISTRIBUTION --------------")
+    println("--------------------------------------")
+    statusCount.forEach((key, value) => println(java.lang.String.format("%1$-35s%2$-45s", key, value.toString)))
+    println("--------------------------------------")
+    println(java.lang.String.format("%1$-35s%2$-45s", "total", statusCount.values().stream().mapToLong(e => e).sum().toString()))
+    println("--------------------------------------")
+  })
 
 }
