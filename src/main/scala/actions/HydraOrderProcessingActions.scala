@@ -2,7 +2,7 @@ package actions
 
 import actions.ConsumerActions.getFromSession
 import actions.hydra.HydraOrderCreation.order
-import actions.hydra.{HydraOrderCreation, HydraUpdate}
+import actions.hydra.{HydraOrderCreation, HydraOrderUpdate, HydraUpdate}
 import io.gatling.core.Predef.{jsonPath, _}
 import newUtilities.{TokenGeneration, newConfigManager}
 import io.gatling.core.Predef._
@@ -45,11 +45,11 @@ object HydraOrderProcessingActions {
   def UpdateOrder(baseUrl: String = newConfigManager.getString("hydra.base_url"),
                   orderId: String,hydraUpdate: HydraUpdate) =
     http("Create Hydra Order")
-      .get(session => baseUrl + "/orders/rb/"+orderId+"/status")
+      .get(session => baseUrl + "/orders/rb/"+getFromSession(session,"retailerOrderId")+"/status")
       .header("accept","application/json")
       .header("contentType","application/json")
       .header("Authorization",TokenGeneration.getDefaultToken())
-      .body(write(hydraUpdate))
+      .body(StringBody(HydraOrderUpdate.getRandomUpdateScenario()))
       .asJson
       .check(
         status.is(200))
