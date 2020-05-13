@@ -18,7 +18,7 @@ object HydraOrderProcessingActions {
   implicit val formats = DefaultFormats
 
   def createMarketPlaceOrder(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
-    http("Create Hydra Order")
+    http("create hydra order")
       .post(session => baseUrl + "/orders")
       .header("accept", "application/json")
       .header("contentType", "application/json")
@@ -34,7 +34,7 @@ object HydraOrderProcessingActions {
 
 
   def getOrderById(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
-    http("Fetch Hydra Order")
+    http("get hydra order by id")
       .get(session => baseUrl + "/orders/" + getFromSession(session, Feeders.fetchKey))
       .header("accept", "application/json")
       .header("contentType", "application/json")
@@ -45,7 +45,7 @@ object HydraOrderProcessingActions {
         jsonPath("$.status").saveAs("status"))
 
   def GetById(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
-    http("Create Hydra Order")
+    http("get hydra order by id")
       .get(session => baseUrl + "/orders/gateway/" + getFromSession(session, "fetch_id"))
       .header("Authorization", TokenGeneration.getDefaultToken())
       .asJson
@@ -54,25 +54,13 @@ object HydraOrderProcessingActions {
         jsonPath("$.status").saveAs("status"))
 
   def updateOrder(baseUrl: String = newConfigManager.getString("hydra.base_url"), body: String) =
-    http("Update Hydra Order")
+    http("update hydra order")
       .post(session => baseUrl + "/orders/rb/" + getFromSession(session, "fetch_order_id") + "/status")
       .header("Authorization", TokenGeneration.getDefaultToken())
       .body(StringBody(body))
       .asJson
       .check(
         status.is(200))
-
-  //  def continue(baseUrl: String = newConfigManager.getString("hydra.base_url")) = {
-  //    doWhile(session => !(getFromSession(session, "status").equals("CANCELLED")) &&
-  //      !(getFromSession(session, "status").equals("DELIVERED")))(
-  //      doSwitch(session => getFromSession(session, "status"))(
-  //        "CREATED" -> exec(updateOrder(baseUrl, HydraOrderUpdate.getRandomUpdateScenario())).exitHereIfFailed.exec(GetById()),
-  //        "ACCEPTED" -> exec(updateOrder(baseUrl, HydraOrderUpdate.getRandomUpdateAfterAcceptScenario())).exitHereIfFailed.exec(GetById()),
-  //        "BILLED" -> exec(updateOrder(baseUrl, HydraOrderUpdate.getRandomUpdateAfterBilledScenarios())).exitHereIfFailed.exec(GetById()),
-  //        "ON_HOLD" -> exec(updateOrder(baseUrl, HydraOrderUpdate.getRandomUpdateAfterOnHoldScenarios())).exitHereIfFailed.exec(GetById()),
-  //        "READY_FOR_DISPATCH" -> exec(updateOrder(baseUrl, HydraOrderUpdate.getDelivered))).exitHereIfFailed.exec(GetById())
-  //    )
-  //  }
 
   def Update(baseUrl: String = newConfigManager.getString("hydra.base_url"), updatePayload: String): ChainBuilder = {
     return exec(updateOrder(baseUrl, updatePayload)).exitHereIfFailed.exec(GetById())
