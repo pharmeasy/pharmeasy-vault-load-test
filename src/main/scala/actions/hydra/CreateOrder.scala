@@ -1,9 +1,5 @@
 package actions.hydra
 
-import java.time.LocalDateTime
-
-import actions.scm.Address
-
 case class CreateOrder(
                         address: Address,
                         customerEmail: String,

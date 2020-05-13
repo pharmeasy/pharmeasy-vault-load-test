@@ -1,10 +1,13 @@
 package actions
 
+import actions.hydra.{HydraOrderCreation, HydraOrderUpdate, HydraUpdate}
 import actions.hydra.{HydraOrderCreation, HydraOrderUpdate}
 import io.gatling.core.Predef.{jsonPath, _}
 import newUtilities.{TokenGeneration, newConfigManager}
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
+import newUtilities.{TokenGeneration, newConfigManager}
+import simulations.templates.Feeders
 import io.gatling.core.session.Session
 import io.gatling.core.structure.ChainBuilder
 import org.json4s.DefaultFormats
@@ -27,16 +30,15 @@ object HydraOrderProcessingActions {
       .check(
         status.is(200),
         jsonPath("$.status").is("CREATED"),
-        jsonPath("$.orderId").saveAs("orderId"),
-        jsonPath("$.id").saveAs("id"))
+        jsonPath("$.retailerOrderId").saveAs("retailerOrderId"))
 
 
-  def GetByOrderId(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
-    http("Create Hydra Order")
-      .get(session => baseUrl + "/orders/"+ getFromSession(session,"orderId"))
-      .header("accept","application/json")
-      .header("contentType","application/json")
-      .header("Authorization",TokenGeneration.getDefaultToken())
+  def getOrderById(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
+    http("Fetch Hydra Order")
+      .get(session => baseUrl + "/orders/" + getFromSession(session, Feeders.fetchKey))
+      .header("accept", "application/json")
+      .header("contentType", "application/json")
+      .header("Authorization", TokenGeneration.getDefaultToken())
       .asJson
       .check(
         status.is(200),

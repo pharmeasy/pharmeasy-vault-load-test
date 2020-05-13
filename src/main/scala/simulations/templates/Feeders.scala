@@ -1,15 +1,16 @@
 package simulations.templates
 
 import java.util.Random
-import io.gatling.core.Predef._
 
 import actions.hydra.HydraOrderCreation
 import actions.scm.OrderPayloadCreation
-
+import com.redis.RedisClientPool
+import io.gatling.core.Predef._
+import io.gatling.redis.Predef.redisFeeder
 
 object Feeders {
 
-  def randonDigitNumber(): Int ={
+  def randonDigitNumber(): Int = {
     return new Random().nextInt(900000) + 100000
   }
 
@@ -17,10 +18,14 @@ object Feeders {
   val b2cMedsFeeder = Iterator.continually(Map("items" -> OrderPayloadCreation.getJsonString()))
 
   //Hydra
-  val HydraMedsFeeder = Iterator.continually(Map("items" -> HydraOrderCreation.ItemsData()))
-  val HydraOrderIdFeeder = Iterator.continually(Map("orderId" -> randonDigitNumber()))
-  val HydraRetailerIds= csv("HydraRetailerIds.csv").eager.circular
+  val hydraMedsFeeder = Iterator.continually(Map("items" -> HydraOrderCreation.ItemsData()))
+  val hydraOrderIdFeeder = Iterator.continually(Map("orderId" -> randonDigitNumber()))
+  val hydraRetailerIds = csv("HydraRetailerIds.csv").eager.circular
 
 
+  val redisKey = "retailerOrderId"
+  val fetchKey = "retailerOrderIdFetch"
+  val redisPool = new RedisClientPool("localhost", 6379)
+  val feeder = redisFeeder(redisPool, redisKey)
 
 }
