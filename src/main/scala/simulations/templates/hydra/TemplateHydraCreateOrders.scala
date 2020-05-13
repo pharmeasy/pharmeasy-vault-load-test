@@ -9,8 +9,8 @@ import simulations.templates.Feeders
 
 class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation{
 
-  private val rampUpUsers = getProperty("rampUpUsers", "2").trim.toInt
-  private val rampUpDuration = getProperty("rampUpDuration", "4").trim.toInt
+  private val rampUpUsers = getProperty("rampUpUsers", "1").trim.toInt
+  private val rampUpDuration = getProperty("rampUpDuration", "2").trim.toInt
 
    def name() = "MarketPlaceOrder"
 
@@ -19,7 +19,8 @@ class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation{
     .feed(Feeders.HydraMedsFeeder)
     .feed(Feeders.HydraOrderIdFeeder)
     .exec(HydraOrderProcessingActions.CreateMarketPlaceOrder())
-//    .exec(HydraOrderProcessingActions.GetOrderById())
+    .exec(HydraOrderProcessingActions.GetById())
+    .exec(HydraOrderProcessingActions.continueNew())
 
   setUp(
     scn.inject(rampUsers(rampUpUsers) during (rampUpDuration))
