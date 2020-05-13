@@ -13,11 +13,11 @@ object TokenGeneration {
   private var SECRET: String = "mercury@2018"
   private var DEFAULT_THEA: String = "th124"
 
-  //  def generateToken(payload: JWTAuthHeaderPayload): String = {
-  //    val token =
-  //      javaWTGenerator.encode(JWTAlgorithm.HMAC512, HEADER, payload, SECRET)
-  //    token
-  //  }
+//    def generateToken(payload: JWTAuthHeaderPayload): String = {
+//      val token =
+//        javaWTGenerator.encode(JWTAlgorithm.HMAC512, HEADER, payload, SECRET)
+//      token
+//    }
 
   def getDefaultToken(): String = {
     val token: String = javaWTGenerator.encode(JWTAlgorithm.HMAC512,
@@ -43,7 +43,10 @@ object TokenGeneration {
   }
 
   def getBillerToken(): String = {
-    val token: String = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiMjRhYjIxY2EtMWYwMC00NzllLTgxOTUtNDJjZjI1ZmUwZWU5IiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6IkFrYW5zaGEiLCJzdG9yZSI6IjI4MDBhZjM1LTBiN2YtNDMyNC05Y2Y4LTc2MTQzYmFjZWI3MiIsInNjb3BlcyI6WyJwYXJ0bmVyLWNoZWNrZXIiLCJwYXJ0bmVyLW1ha2VyIiwicGFydG5lci1zdXBlcnVzZXIiLCJwcm9jdXJlbWVudF9kZW1hbmRfcGxhbm5lciIsInByb2N1cmVtZW50X29yZGVyaW5nX2Fzc29jaWF0ZSIsInByb2N1cmVtZW50X29yZGVyaW5nX21hbmFnZXIiLCJwcm9jdXJlbWVudF9wdXJjaGFzZV9yYXRlX3BsYW5uZXIiLCJzdG9yZS1iaWxsaW5nLXVzZXIiLCJzdG9yZS1waGFybWFjaXN0Iiwid2gtYmlsbGluZy11c2VyIiwid2gtZ2F0ZS1wYXNzLXVzZXIiLCJ3aC1pbnZlbnRvcnktcmVjdGlmaWVyIiwid2gtcHJvY2Vzcy1vd25lci1wcm9jdXJlbWVudCIsIndoLXByb2N1cmVtZW50LWFkbWluIiwid2gtcHJvZHVjdC1tYW5hZ2VyLXByb2N1cmVtZW50Iiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iLCJ3aC12ZXJpZmllciJdLCJleHAiOjE1OTA1NzM3ODEsInVzZXIiOiJha2Fuc2hhLmdhb25rYXJAcGhhcm1lYXN5LmluIiwidGVuYW50IjoidGgxMjQifQ.13SJrAYgbfe75sDiDvNaxnKSMRL5JkDtc2Ye-q7_kMe2I5C9F9XjXF33Q5w_5IQAphj33kcd8R7VhLYPhae8sw"
+    val token: String = javaWTGenerator.encode(JWTAlgorithm.HMAC512,
+      HEADER,
+      getPharmacistDefaultAuthPayload(DEFAULT_THEA),
+      SECRET)
     token
   }
 
@@ -80,5 +83,23 @@ object TokenGeneration {
     payload.setTenant(String.valueOf(thea))
     payload
   }
-}
 
+  def getPharmacistDefaultAuthPayload(thea: String = DEFAULT_THEA): JWTAuthHeaderPayload = {
+    val payload: JWTAuthHeaderPayload = new JWTAuthHeaderPayload
+    payload.setApp("pharmacist")
+    payload.setAudience("mercury")
+    payload.setUid(UUID.randomUUID.toString)
+    payload.setIssuer("PharmEasy.in")
+    payload.setName("Automation Picker User")
+    payload.setStore("")
+    payload.setScopes(Arrays.asList("store-billing-user",
+    "store-pharmacist",
+    "wh-billing-user",
+    "wh-gate-pass-user",
+    "wh-signatory",
+    "wh-super-admin"))
+    payload.setUser("Automation.User@gmail.com")
+    payload.setTenant(String.valueOf(thea))
+    payload
+  }
+}

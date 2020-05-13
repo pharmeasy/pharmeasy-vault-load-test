@@ -19,20 +19,21 @@ object OrderPayloadCreation {
   def getTray(count: Int): String = {
     val shuffled = trayData
     println(shuffled)
-    val data = shuffled(count)
+    val data = trayData(count)
     println(data(0).toString)
     data(0).toString
   }
 
   private def getB2CPayload(max: Int = 2): List[Item] = {
-    val shuffled = random.shuffle(b2cMedicinesData)
-    val num = 1;randomNumberBetweenRange(1, max)
+//    val shuffled = random.shuffle(b2cMedicinesData)
+//    val num = 1;randomNumberBetweenRange(1, max)
     var items = List[Item]()
-    for (a <- 0 to num - 1) {
-      val data = shuffled(a);
+    //for (a <- 0 to num - 1) {
+      val data = b2cMedicinesData(0);
+    println("Ucode: "+data(1) + " :: "+data(0))
       val item = Item(77, data(0), data(1), data(2))
       items = item :: items
-    }
+    //}
     return items
   }
 
@@ -131,7 +132,7 @@ object OrderPayloadCreation {
     "mercury",
     "c0Qw92O1-ig:APA91bHTXuRTFr4LXs6Jn9cfiR367P7GhiwzEeDitnLm5co0XrpIOVA4LHGKMIbiCADycVrZTLWzkFrjMdoAc12JSmPafL0Q_Fed-8sGGLnx_fspLzG9XGBiXct5FtvZFWSsv-GoWCtM",
     "12345",
-    "pick_ak39"
+    "pick_ak51"
   )
 
   def getSignInAppPayload(): String = {

@@ -6,7 +6,7 @@ import io.gatling.http.Predef.{http, _}
 import scala.concurrent.duration._
 import newUtilities.newUtilities
 
-class SCMOrders extends io.gatling.core.Predef.Simulation {
+class SCMOrdersSCMOrders extends io.gatling.core.Predef.Simulation {
 
   private val random = scala.util.Random
 

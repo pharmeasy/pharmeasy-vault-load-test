@@ -1,8 +1,8 @@
 package actions
 
-import com.google.gson.JsonArray
 import scm.OrderPayloadCreation
 import scm.CreateB2BOrderPayload
+import scm.CreateGenerateBillPayload
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.http.request.builder.HttpRequestBuilder
@@ -12,7 +12,26 @@ import utils.ConfigManager.getString
 object OrderProcessingActions extends BaseActions {
   def addToSession(session: Session, attributes: (String, Any)*): Session = session.setAll(attributes)
 
-  def CreateB2BOrders(baseUrl: String = newConfigManager.getString("outward.base_url")) =
+  def createB2BOrders(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
+    http("Create B2B Order")
+      .post(session => baseUrl + "/rioOrder?tenant=" + thea)
+      .body(StringBody(CreateB2BOrderPayload.getOrderPayload()))
+      .asJson
+      .check(
+        status.is(200))
+
+
+  def fetchOrderId(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
+    http("Fetch Order Id")
+      .get(session => baseUrl + s"/omsOrder/customerOrder/${getFromSession(session, "customerId", "")}")
+      .header("Authorization", TokenGeneration.getDefaultToken())
+      .asJson
+      .check(
+        status.is(200),
+        jsonPath("$.customerOrderId").is(session => getFromSession(session, "customerId", ""))
+      )
+
+  def CreateB2COrders(baseUrl: String = newConfigManager.getString("outward.base_url")) =
     http("Create B2C Order")
       .post(session => baseUrl + "/api/outward/orders")
       .header("accept", "application/json")
@@ -50,6 +69,7 @@ object OrderProcessingActions extends BaseActions {
         jsonPath("$.status").is("BILLING_IN_PROGRESS": String),
         jsonPath("$.pickerTaskId").is(session => getFromSession(session, "pickerTaskId")))
 
+
   def prioritisePickerTask(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Prioritise the picker task")
       .put(session => baseUrl + s"/pickerTasks/${getFromSession(session, "pickerTaskId")}/prioritise")
@@ -73,8 +93,7 @@ object OrderProcessingActions extends BaseActions {
       .get(session => baseUrl + "/aggregatePickerTasks/assigned")
       .header("Authorization", session => s"${getFromSession(session, "token")}")
       .check(status.is(200),
-        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
-        jsonPath("$.aggregatePickerTask.taskCount").is("1"))
+        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"))
 
 
   def pickTray(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
@@ -99,7 +118,7 @@ object OrderProcessingActions extends BaseActions {
         jsonPath("$.nextPickerTaskItem.ucode").notNull.saveAs("ucode"),
         jsonPath("$.nextPickerTaskItem.binId").notNull.saveAs("bin"),
         jsonPath("$.nextPickerTaskItem.status").is("CREATED"),
-        jsonPath("$.nextPickerTaskItem.pickerTaskId").is(session => getFromSession(session, "pickerId")))
+        jsonPath("$.nextPickerTaskItem.pickerTaskId").is(session => getFromSession(session, "pickerTaskId")))
 
   def searchInventoryPostTaskPicked(baseUrl: String = newConfigManager.getString("search_inventory_url")): HttpRequestBuilder =
     http("Search Inventory")
@@ -123,14 +142,13 @@ object OrderProcessingActions extends BaseActions {
       .queryParam("size", "1")
       .asJson
       .check(status.is(200),
-        jsonPath("$.data[*].barcode").findAll.saveAs("barcodes"),jsonPath("$.data[*].batch").findAll.saveAs("batch"))
-
+        jsonPath("$.data[*].barcode").findAll.saveAs("barcodes"), jsonPath("$.data[*].batch").findAll.saveAs("batch"))
 
 
   def pickedItems(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Picked Items")
       .patch(session => baseUrl + s"/pickerTasks/${getFromSession(session, "pickerTaskId")}/pickedItems")
-    .body(StringBody(session=>OrderPayloadCreation.getPickedItemsPayload(s"${getFromSession(session,"bin")}",s"${getFromSession(session,"ucode")}",s"${getFromSession(session,"barcodes")}")))
+      .body(StringBody(session => OrderPayloadCreation.getPickedItemsPayload(s"${getFromSession(session, "bin")}", s"${getFromSession(session, "ucode")}", s"${getFromSession(session, "barcodes")}")))
       .asJson
       .check(status.is(200),
         jsonPath("$.message").is("success"))
@@ -144,11 +162,11 @@ object OrderProcessingActions extends BaseActions {
         s"${getFromSession(session, "pickerTaskId")}")))
       .asJson
       .check(status.is(200),
-        jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "pickerTaskId")}"),
+        jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
         jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
         jsonPath("$.aggregatePickerTask.status").is("ZONE_SCANNING"),
         jsonPath("$.aggregatePickerTask.taskCount").is("1"),
-        jsonPath("$.aggregatePickerTask.pickerTaskZones[0].pickerTaskId").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
+        jsonPath("$.aggregatePickerTask.pickerTaskZones[0].pickerTaskId").is(session => s"${getFromSession(session, "pickerTaskId")}"),
         jsonPath("$.aggregatePickerTask.pickerTaskZones[0].status").is("PENDING_FOR_BILLING"))
 
   def scanZone(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
@@ -158,70 +176,99 @@ object OrderProcessingActions extends BaseActions {
       .body(StringBody(session => OrderPayloadCreation.getScanZonePayload(s"${getFromSession(session, "pickerTaskId")}")))
       .asJson
       .check(status.is(200),
-        jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "pickerTaskId")}"),
+        jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
         jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
         jsonPath("$.aggregatePickerTask.status").is("COMPLETED"),
         jsonPath("$.aggregatePickerTask.taskCount").is("1"))
 
-
-  def createB2BOrders(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
-    http("Create B2B Order")
-      .post(session => baseUrl + "/rioOrder?tenant=" + thea)
-      .body(StringBody(CreateB2BOrderPayload.getOrderPayload()))
-      .asJson
-      .check(
-        status.is(200))
-
-
-  def fetchOrderId(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
-    http("Fetch Order Id")
-      .get(session => baseUrl + s"/omsOrder/customerOrder/${getFromSession(session, "customerId", "")}")
-      .header("Authorization", TokenGeneration.getDefaultToken())
-      .asJson
-      .check(
-        status.is(200),
-        jsonPath("$.customerOrderId").is(session => getFromSession(session, "customerId", ""))
-      )
-
-  def billingInProgress(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
-    http("updating the order status to 'Billing In Progress'")
-      .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/status/")
-      .header("Authorization", TokenGeneration.getDefaultToken(thea))
-      .asJson
-      .check(
-        status.is(200),
-        jsonPath("$.status").is("BILLING_IN_PROGRESS"),
-        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", ""))
-
-      )
+  //
+  //  def billingInProgress(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
+  //    http("updating the order status to 'Billing In Progress'")
+  //      .put(session => baseUrl + s"outward/orders/${getFromSession(session, "externalOrderId", "")}/status/")
+  //      .header("Authorization", TokenGeneration.getDefaultToken(thea))
+  //      .asJson
+  //      .check(
+  //        status.is(200),
+  //        jsonPath("$.status").is("BILLING_IN_PROGRESS"),
+  //        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", ""))
+  //
+  //      )
+  //
+  //  def generateStoreInvoice(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
+  //    http("generating Store invoice")
+  //      .put(session => baseUrl + s"outward/orders/${getFromSession(session, "externalOrderId", "")}/status/storeInvoice")
+  //      .header("Authorization", TokenGeneration.getDefaultToken(thea))
+  //      .asJson
+  //      .check(
+  //        status.is(200),
+  //        jsonPath("$.status").is("STORE_INVOICE_GENERATED"),
+  //        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", ""))
+  //
+  //      )
+  //
+  //  def generateDispatchNote(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
+  //    http("generating Dispatch Note")
+  //      .get(session => baseUrl + s"outward/orders/${getFromSession(session, "externalOrderId", "")}/customer/dispatchNote")
+  //      .header("Authorization", TokenGeneration.getDefaultToken(thea))
+  //      .asJson
+  //      .check(
+  //        status.is(200),
+  //        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", ""))
+  //
+  //      )
+  //
+  //  def recievedAtStore(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
+  //    http("updating the order status to 'Recieved At Store'")
+  //      .put(session => baseUrl + s"outward/orders/${getFromSession(session, "externalOrderId", "")}/status")
+  //      .header("Authorization", TokenGeneration.getDefaultToken(thea))
+  //
+  //      .asJson
+  //      .check(
+  //        status.is(200),
+  //        jsonPath("$.status").is("RECEIVED_AT_STORE"),
+  //        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", ""))
+  //
+  //      )
+  //
+  //  def generateCustomerInvoice(baseUrl: String = getString("outward.base_url"), storeId: String = getString("outward.storeId"), thea: String = getString("outward.thea")) =
+  //    http("generating Customer invoice")
+  //      .put(session => baseUrl + s"outward/orders/${getFromSession(session, "externalOrderId", "")}/status/customerInvoice?storeId=" + storeId)
+  //      .header("Authorization", TokenGeneration.getDefaultToken(thea))
+  //      .asJson
+  //      .check(
+  //        status.is(200),
+  //        jsonPath("$.status").is("CUSTOMER_INVOICE_GENERATED"),
+  //        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", "")))
 
   def generateStoreInvoice(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("generating Store invoice")
       .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/status/storeInvoice")
-      .header("Authorization", TokenGeneration.getBillerToken())
+      .header("Authorization", session => s"${getFromSession(session, "biller_token")}")
+      .body(StringBody(CreateGenerateBillPayload.getInvoicePayload("STORE_INVOICE_GENERATED")))
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.status").is("STORE_INVOICE_GENERATED"),
-        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", ""))
+        jsonPath("$.status").is("1"),
+        jsonPath("$.urls").notNull
 
       )
 
   def generateDispatchNote(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("generating Dispatch Note")
       .get(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/customer/dispatchNote")
-      .header("Authorization", TokenGeneration.getBillerToken())
+      .header("Authorization", session => s"${getFromSession(session, "biller_token")}")
       .asJson
       .check(
         status.is(200),
-        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", ""))
+        jsonPath("$.status").is("0"), jsonPath("$.url").notNull
 
       )
 
   def recievedAtStore(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("updating the order status to 'Recieved At Store'")
       .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/status")
-      .header("Authorization", TokenGeneration.getBillerToken())
+      .header("Authorization", session => s"${getFromSession(session, "biller_token")}")
+      .body(StringBody(CreateGenerateBillPayload.setOrderStatus("RECEIVED_AT_STORE")))
       .asJson
       .check(
         status.is(200),
@@ -233,10 +280,15 @@ object OrderProcessingActions extends BaseActions {
   def generateCustomerInvoice(baseUrl: String = getString("outward.base_url"), storeId: String = getString("outward.storeId"), thea: String = getString("outward.thea")) =
     http("generating Customer invoice")
       .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/status/customerInvoice?storeId=" + storeId)
-      .header("Authorization", TokenGeneration.getBillerToken())
+      .header("Authorization", session => s"${getFromSession(session, "biller_token")}")
+      .body(StringBody(CreateGenerateBillPayload.getInvoicePayload("CUSTOMER_INVOICE_GENERATED")))
       .asJson
       .check(
         status.is(200),
         jsonPath("$.status").is("CUSTOMER_INVOICE_GENERATED"),
-        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", "")))
+        jsonPath("$.externalOrderId").is(session => getFromSession(session, "externalOrderId", "")),
+
+
+      )
+
 }
