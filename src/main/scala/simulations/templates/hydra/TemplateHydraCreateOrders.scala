@@ -19,6 +19,7 @@ class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation{
     .feed(Feeders.HydraMedsFeeder)
     .feed(Feeders.HydraOrderIdFeeder)
     .exec(HydraOrderProcessingActions.CreateMarketPlaceOrder())
+//    .exec(HydraOrderProcessingActions.GetOrderById())
 
   setUp(
     scn.inject(rampUsers(rampUpUsers) during (rampUpDuration))
