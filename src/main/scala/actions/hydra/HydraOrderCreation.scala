@@ -57,7 +57,7 @@ object HydraOrderCreation {
     "source-work-flow-id-LoadTest"
   )
 
-  def getOrderPayload(): String = {
-    return write(order).replace("\"StringReplace\"", "${items}")
-  }
+  def getOrderPayload() = write(order).replace("\"StringReplace\"", "${items}")
+
+
 }

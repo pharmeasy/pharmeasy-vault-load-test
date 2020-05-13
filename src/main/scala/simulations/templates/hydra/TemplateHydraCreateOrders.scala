@@ -9,15 +9,16 @@ import simulations.templates.Feeders._
 
 import scala.concurrent.duration._
 
-
 class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation {
 
   private val protocol = http.disableWarmUp.disableCaching
-
-  private val rampUpUsers = getProperty("rampUpUsers", "10").trim.toInt
+  private val DEMILITER = "-"
+  private val rampUpUsers = getProperty("rampUpUsers", "50").trim.toInt
   private val rampUpDuration = getProperty("rampUpDuration", "10").trim.toInt
 
-  private val fetchOrderdelayStartInSeconds = 2
+  private val fetchOrderDelayStartInSeconds = 5
+
+  private val vector = new java.util.LinkedList[String]
 
   private val redisClient = new com.redis.RedisClient();
 
@@ -27,25 +28,29 @@ class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation {
     .feed(hydraOrderIdFeeder)
     .exec(createMarketPlaceOrder())
     .exec(session => {
-      val value = session(redisKey).as[String]
-      if (value != null) {
-        redisClient.lpush(redisKey, value)
+      val id = session("id").asOption[String]
+      val orderId = session("orderId").asOption[String]
+      if (!id.isEmpty && !orderId.isEmpty) {
+        vector.add(id.get + DEMILITER + orderId.get)
       }
       session
     })
 
-  val fetchOrder = scenario("Fetch Order")
-    .pause(fetchOrderdelayStartInSeconds second)
-    .exec(doIf(session => redisClient.llen(redisKey).get > 0) {
-      exec(session => session.set(fetchKey, redisClient.rpop(redisKey).get))
-        .exec(getOrderById())
-    })
-
   val updateOrder = scenario("Update Order")
+    .pause(fetchOrderDelayStartInSeconds second)
+    .exec(doIf(session => !vector.isEmpty) {
+      exec(session => {
+        val id = vector.remove(0)
+        val value = id.split(DEMILITER)
+        session.set("fetch_id", value(0)).set("fetch_order_id", value(1))
+      })
+        .exec(GetById())
+        .exec(continueNew())
+    })
 
   setUp(
     createOrder.inject(rampUsers(rampUpUsers) during (rampUpDuration)) protocols (protocol),
-    fetchOrder.inject(rampUsers(rampUpUsers) during (rampUpDuration)) protocols (protocol)
+    updateOrder.inject(rampUsers(rampUpUsers) during (rampUpDuration)) protocols (protocol)
   )
 
 }
