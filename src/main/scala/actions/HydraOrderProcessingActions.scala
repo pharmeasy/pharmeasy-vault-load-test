@@ -3,6 +3,7 @@ package actions
 import actions.hydra.{HydraOrderCreation, HydraOrderUpdate}
 import io.gatling.core.Predef.{jsonPath, _}
 import io.gatling.core.session.Session
+import io.gatling.core.structure.ChainBuilder
 import io.gatling.http.Predef._
 import newUtilities.{TokenGeneration, newConfigManager}
 import org.json4s.DefaultFormats
@@ -34,7 +35,7 @@ object HydraOrderProcessingActions {
 
   def getOrderById(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
     http("get hydra order by id")
-      .get(session => baseUrl + "/orders/" + getFromSession(session, Feeders.fetchKey))
+      .get(session => baseUrl + "/orders/" + getFromSession(session, "fetch_order_id"))
       .header("accept", "application/json")
       .header("contentType", "application/json")
       .header("Authorization", TokenGeneration.getDefaultToken())
@@ -43,7 +44,7 @@ object HydraOrderProcessingActions {
         status.is(200),
         jsonPath("$.status").saveAs("status"))
 
-  def GetById(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
+  def getById(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
     http("get hydra order by id")
       .get(session => baseUrl + "/orders/gateway/" + getFromSession(session, "fetch_id"))
       .header("Authorization", TokenGeneration.getDefaultToken())
@@ -64,13 +65,14 @@ object HydraOrderProcessingActions {
   val statusCount = new java.util.concurrent.ConcurrentHashMap[String, Long]()
 
   def update(baseUrl: String = newConfigManager.getString("hydra.base_url"), updatePayload: String, key: String) = {
-    exec(updateOrder(baseUrl, updatePayload)).exec(session => {
-      statusCount.put(key, if (statusCount.containsKey(key)) (statusCount.get(key) + 1) else 1)
-      session
-    }).exitHereIfFailed.exec(GetById())
+    exec(updateOrder(baseUrl, updatePayload))
+      .exec(session => {
+        statusCount.put(key, if (statusCount.containsKey(key)) (statusCount.get(key) + 1) else 1)
+        session
+      }).exitHereIfFailed.exec(getById())
   }
 
-  def continueNew(baseUrl: String = newConfigManager.getString("hydra.base_url")) = {
+  def statusUpdates(baseUrl: String = newConfigManager.getString("hydra.base_url")): ChainBuilder = {
     doWhile(session => !(getFromSession(session, "status").equals("CANCELLED")) &&
       !(getFromSession(session, "status").equals("DELIVERED")))(
       doSwitch(session => getFromSession(session, "status"))(

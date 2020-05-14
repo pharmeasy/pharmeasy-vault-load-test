@@ -18,7 +18,7 @@ class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation {
 
   private val fetchOrderDelayStartInSeconds = 5
 
-  private val vector = new java.util.Vector[String]
+  private val queue = new java.util.LinkedList[String]
 
 
   val createOrder = scenario("Create Order")
@@ -30,21 +30,22 @@ class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation {
       val id = session("id").asOption[String]
       val orderId = session("orderId").asOption[String]
       if (!id.isEmpty && !orderId.isEmpty) {
-        vector.add(id.get + DEMILITER + orderId.get)
+        queue.add(id.get + DEMILITER + orderId.get)
       }
       session
     })
 
   val updateOrder = scenario("Update Order")
     .pause(fetchOrderDelayStartInSeconds second)
-    .exec(doIf(session => !vector.isEmpty) {
+    .exec(doIf(session => !queue.isEmpty) {
       exec(session => {
-        val id = vector.remove(0)
+        val id = queue.remove(0)
         val value = id.split(DEMILITER)
         session.set("fetch_id", value(0)).set("fetch_order_id", value(1))
       })
-        .exec(GetById())
-        .exec(continueNew())
+        .exec(getById())
+        .exec(statusUpdates())
+        .exec(getOrderById())
     })
 
   setUp(

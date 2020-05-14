@@ -23,9 +23,4 @@ object Feeders {
   val hydraRetailerIds = csv("HydraRetailerIds.csv").eager.circular
 
 
-  val redisKey = "retailerOrderId"
-  val fetchKey = "retailerOrderIdFetch"
-  val redisPool = new RedisClientPool("localhost", 6379)
-  val feeder = redisFeeder(redisPool, redisKey)
-
 }
