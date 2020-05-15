@@ -43,9 +43,9 @@ object Utilities {
 
   implicit val formats = DefaultFormats
 
-  def serializeJson[A](json: String)(implicit mf: Manifest[A]) = read[A](json)
+  def deserializeJson[A](json: String)(implicit mf: Manifest[A]) = read[A](json)
 
-  def deserializeJson(json: Any) = JsonMethods.mapper.writeValueAsString(Extraction.decompose(json)(formats))
+  def serializeJson(json: Any) = JsonMethods.mapper.writeValueAsString(Extraction.decompose(json)(formats))
 
   def readCSV(file: String) = {
     val stream = openStream(file)

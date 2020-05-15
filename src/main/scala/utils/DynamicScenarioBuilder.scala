@@ -8,7 +8,7 @@ import org.reflections.Reflections
 import actions.BaseActions
 import io.gatling.http.request.builder.HttpRequestBuilder
 import utils.Utilities.readFile
-import utils.Utilities.serializeJson
+import utils.Utilities.deserializeJson
 
 case class Node(actions: Array[Action]) {
   override def toString: String = actions.deep.toString
@@ -67,7 +67,7 @@ object DynamicScenarioBuilder {
 
     val json = readFile("src/test/resources/plan.json")
 
-    val data = serializeJson[Map[String, List[Action]]](json)
+    val data = deserializeJson[Map[String, List[Action]]](json)
 
     println(data)
 

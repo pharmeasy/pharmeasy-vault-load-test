@@ -3,6 +3,7 @@ package simulations.templates
 import java.util.Random
 
 import actions.hydra.HydraOrderCreation
+import actions.redbook.RedbookOrderCreate
 import actions.scm.OrderPayloadCreation
 import com.redis.RedisClientPool
 import io.gatling.core.Predef._
@@ -18,10 +19,11 @@ object Feeders {
   val b2cMedsFeeder = Iterator.continually(Map("items" -> OrderPayloadCreation.getJsonString()))
 
   //Hydra
-  val hydraRedbookMedsFeeder = Iterator.continually(Map("items" -> HydraOrderCreation.ItemsData()))
+  val hydraMedsFeeder = Iterator.continually(Map("items" -> HydraOrderCreation.ItemsData()))
   val hydraRedbookOrderIdFeeder = Iterator.continually(Map("orderId" -> randonDigitNumber()))
   val hydraRetailerIds = csv("HydraRetailerIds.csv").eager.circular
 
+  val redbookMedsFeeder = Iterator.continually(Map("items" -> RedbookOrderCreate.RedbookItemData()))
   val retailerRedbookId = csv("retailerRedbookId.csv").eager.circular
 
 }

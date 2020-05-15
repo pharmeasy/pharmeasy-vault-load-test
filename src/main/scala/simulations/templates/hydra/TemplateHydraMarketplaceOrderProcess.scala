@@ -23,7 +23,7 @@ class TemplateHydraMarketplaceOrderProcess extends io.gatling.core.Predef.Simula
 
   val createOrder = scenario("Create Order")
     .feed(hydraRetailerIds)
-    .feed(hydraRedbookMedsFeeder)
+    .feed(hydraMedsFeeder)
     .feed(hydraRedbookOrderIdFeeder)
     .exec(createMarketPlaceOrder())
     .exec(session => {

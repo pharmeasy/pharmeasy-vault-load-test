@@ -1,7 +1,6 @@
 package actions
 
-import actions.hydra.HydraOrderUpdate
-import actions.redbook.{RedbookOrderCreate, RedbookOrderUpdate}
+import actions.redbook.{Medicines, RedbookBillOrder, RedbookOrderCreate, RedbookOrderUpdate}
 import io.gatling.http.request.builder.HttpRequestBuilder
 import io.gatling.core.Predef.{jsonPath, _}
 import io.gatling.core.session.Session
@@ -32,6 +31,7 @@ object RedbookOrderProcessingActions {
         jsonPath("$._id").saveAs("redbook_id"),
         jsonPath("$.app_id").saveAs("app_id"),
         jsonPath("$.meta").saveAs("meta"),
+        jsonPath("$.medicines").saveAs("meds"),
         bodyString.saveAs("create_response"))
   }
 
@@ -39,7 +39,7 @@ object RedbookOrderProcessingActions {
 
 
   def getOrderByPEId(baseUrl: String = newConfigManager.getString("redbook.base_url")) =
-    http("Get order details by Redbook Id")
+    http("Get order details by PE Id")
     .get(baseUrl + "/service/v0/order")
     .queryParam("reference_order_id",session=>getFromSession(session,"fetch_reference_order_id"))
     .asJson
@@ -66,7 +66,6 @@ object RedbookOrderProcessingActions {
       case "CANCELLED" => updatePayload = RedbookOrderUpdate.getCancelled()
       case "READY_FOR_DISPATCH" => updatePayload = RedbookOrderUpdate.getRFD()
       case "DELIVERED" => updatePayload = RedbookOrderUpdate.getDelivered()
-      case "BILLED" => updatePayload = RedbookOrderUpdate.getBilled()
     }
 
     exec(updateStatus(baseUrl,updateString,updatePayload))
@@ -84,23 +83,35 @@ object RedbookOrderProcessingActions {
           5.0 -> update(baseUrl, "CANCELLED")
         ),
         "ACCEPTED" -> randomSwitch(
-          70.0 -> update(baseUrl, "BILLED"),
-          20.0 -> update(baseUrl, "ON_HOLD"),
-          10.0 -> update(baseUrl, "CANCELLED")
+          90.0 -> exec(billTheOrder()).exitHereIfFailed.exec(getOrderByPEId()),
+          5.0 -> update(baseUrl, "ON_HOLD"),
+          5.0 -> update(baseUrl, "CANCELLED")
         ),
         "BILLED" -> randomSwitch(
-          80.0 -> update(baseUrl, "READY_FOR_DISPATCH"),
-          20.0 -> update(baseUrl, "CANCELLED")
+          90.0 -> update(baseUrl, "READY_FOR_DISPATCH"),
+          10.0 -> update(baseUrl, "CANCELLED")
         ),
         "ON_HOLD" -> randomSwitch(
-          80.0 -> update(baseUrl, "BILLED"),
-          20.0 -> update(baseUrl, "CANCELLED")
+          90.0 -> exec(billTheOrder()).exitHereIfFailed.exec(getOrderByPEId()),
+          10.0 -> update(baseUrl, "CANCELLED")
         ),
         "READY_FOR_DISPATCH" -> update(baseUrl, "DELIVERED")
 
       )
     )
   }
+
+  def billTheOrder(baseUrl: String = newConfigManager.getString("redbook.base_url")):HttpRequestBuilder =
+    http("Bill the Redbook Order")
+      .post(session =>baseUrl + "/service/v1/pe/"+getFromSession(session,"fetch_app_id")+"/order")
+      .queryParam("reference_order_id",session=>getFromSession(session,"fetch_reference_order_id"))
+      .body( StringBody(session => RedbookBillOrder
+        .getBillPayload(session("fetch_meds").as[Array[Medicines]],
+          session("fetch_app_id").as[String],
+          session("fetch_reference_order_id").as[String])))
+      .asJson
+      .check(status.is(200),
+        jsonPath("$.status").is("BILLED"))
 
 
 }
