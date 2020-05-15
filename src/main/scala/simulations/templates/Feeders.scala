@@ -18,9 +18,10 @@ object Feeders {
   val b2cMedsFeeder = Iterator.continually(Map("items" -> OrderPayloadCreation.getJsonString()))
 
   //Hydra
-  val hydraMedsFeeder = Iterator.continually(Map("items" -> HydraOrderCreation.ItemsData()))
-  val hydraOrderIdFeeder = Iterator.continually(Map("orderId" -> randonDigitNumber()))
+  val hydraRedbookMedsFeeder = Iterator.continually(Map("items" -> HydraOrderCreation.ItemsData()))
+  val hydraRedbookOrderIdFeeder = Iterator.continually(Map("orderId" -> randonDigitNumber()))
   val hydraRetailerIds = csv("HydraRetailerIds.csv").eager.circular
 
+  val retailerRedbookId = csv("retailerRedbookId.csv").eager.circular
 
 }

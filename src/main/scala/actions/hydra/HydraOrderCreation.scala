@@ -14,9 +14,9 @@ object HydraOrderCreation {
 
   private val hydraMedsData: List[Array[String]] = readCSV("LoadTest.csv")
 
-  private def HydraItemsPayload(max: Int = 3): List[Items] = {
+  private def HydraItemsPayload(max: Int = 10): List[Items] = {
     val shuffled = random.shuffle(hydraMedsData)
-    val num = randomNumberBetweenRange(1, max)
+    val num = randomNumberBetweenRange(5, max)
     var ListOfItems = List[Items]()
     for (a <- 0 to num - 1) {
       val data = shuffled(a);

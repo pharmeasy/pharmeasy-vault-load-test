@@ -9,22 +9,22 @@ import simulations.templates.Feeders._
 
 import scala.concurrent.duration._
 
-class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation {
+class TemplateHydraMarketplaceOrderProcess extends io.gatling.core.Predef.Simulation {
 
   private val protocol = http.disableWarmUp.disableCaching
   private val DEMILITER = "-"
   private val rampUpUsers = getProperty("rampUpUsers", "50").trim.toInt
   private val rampUpDuration = getProperty("rampUpDuration", "10").trim.toInt
 
-  private val fetchOrderDelayStartInSeconds = 5
+  private val fetchOrderDelayStartInSeconds = 2
 
   private val queue = new java.util.LinkedList[String]
 
 
   val createOrder = scenario("Create Order")
     .feed(hydraRetailerIds)
-    .feed(hydraMedsFeeder)
-    .feed(hydraOrderIdFeeder)
+    .feed(hydraRedbookMedsFeeder)
+    .feed(hydraRedbookOrderIdFeeder)
     .exec(createMarketPlaceOrder())
     .exec(session => {
       val id = session("id").asOption[String]
@@ -45,7 +45,7 @@ class TemplateHydraCreateOrders extends io.gatling.core.Predef.Simulation {
       })
         .exec(getById())
         .exec(statusUpdates())
-        .exec(getOrderById())
+        .exec(getOrderDetails())
     })
 
   setUp(

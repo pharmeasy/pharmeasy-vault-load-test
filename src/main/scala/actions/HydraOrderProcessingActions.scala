@@ -7,7 +7,6 @@ import io.gatling.core.structure.ChainBuilder
 import io.gatling.http.Predef._
 import newUtilities.{TokenGeneration, newConfigManager}
 import org.json4s.DefaultFormats
-import simulations.templates.Feeders
 
 object HydraOrderProcessingActions {
 
@@ -19,9 +18,7 @@ object HydraOrderProcessingActions {
 
   def createMarketPlaceOrder(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
     http("create hydra order")
-      .post(session => baseUrl + "/orders")
-      .header("accept", "application/json")
-      .header("contentType", "application/json")
+      .post(  baseUrl + "/orders")
       .header("Authorization", TokenGeneration.getDefaultToken())
       .body(StringBody(HydraOrderCreation.getOrderPayload()))
       .asJson
@@ -33,11 +30,9 @@ object HydraOrderProcessingActions {
         jsonPath("$.id").saveAs("id"))
 
 
-  def getOrderById(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
+  def getOrderDetails(baseUrl: String = newConfigManager.getString("hydra.base_url")) =
     http("get hydra order by id")
       .get(session => baseUrl + "/orders/" + getFromSession(session, "fetch_order_id"))
-      .header("accept", "application/json")
-      .header("contentType", "application/json")
       .header("Authorization", TokenGeneration.getDefaultToken())
       .asJson
       .check(
