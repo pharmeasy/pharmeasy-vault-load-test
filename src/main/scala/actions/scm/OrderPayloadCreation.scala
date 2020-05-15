@@ -15,25 +15,29 @@ object OrderPayloadCreation {
 
   private val b2cMedicinesData: List[Array[String]] = readCSV("b2c_meds.csv")
   private val trayData: List[Array[String]] = readCSV("tray.csv")
+  private val pickerData: List[Array[String]] = readCSV("pickerUsers.csv")
 
-  def getTray(count: Int): String = {
-    val shuffled = trayData
-    println(shuffled)
-    val data = trayData(count)
-    println(data(0).toString)
-    data(0).toString
-  }
+  def getTrayListFeeder() = trayData.map(e => Map("trayId" -> e(0))).toArray
+
+  def getPickerListFeeder() = pickerData.map(e => Map("pickerUser" -> e(0))).toArray
 
   private def getB2CPayload(max: Int = 2): List[Item] = {
-//    val shuffled = random.shuffle(b2cMedicinesData)
-//    val num = 1;randomNumberBetweenRange(1, max)
     var items = List[Item]()
-    //for (a <- 0 to num - 1) {
-      val data = b2cMedicinesData(0);
-    println("Ucode: "+data(1) + " :: "+data(0))
+    val data = b2cMedicinesData(0);
+    val item = Item(77, data(0), data(1), data(2))
+    items = item :: items
+    items
+  }
+
+  private def getB2CPayloadForMultipleUcode(max: Int = 2): List[Item] = {
+    val shuffled = random.shuffle(b2cMedicinesData)
+    val num = randomNumberBetweenRange(1, max)
+    var items = List[Item]()
+    for (a <- 0 to num - 1) {
+      val data = shuffled(a);
       val item = Item(77, data(0), data(1), data(2))
       items = item :: items
-    //}
+    }
     return items
   }
 
@@ -61,7 +65,7 @@ object OrderPayloadCreation {
     "qwerty@gmail.com",
     "Kiran",
     "Deep",
-    "2800af35-0b7f-4324-9cf8-76143baceb72",
+    "065b642a-26e5-4be3-ac29-01d7ee605a46",
     "SCM",
     2,
     null,
@@ -132,11 +136,20 @@ object OrderPayloadCreation {
     "mercury",
     "c0Qw92O1-ig:APA91bHTXuRTFr4LXs6Jn9cfiR367P7GhiwzEeDitnLm5co0XrpIOVA4LHGKMIbiCADycVrZTLWzkFrjMdoAc12JSmPafL0Q_Fed-8sGGLnx_fspLzG9XGBiXct5FtvZFWSsv-GoWCtM",
     "12345",
-    "pick_ak51"
+    "StringReplace"
   )
 
-  def getSignInAppPayload(): String = {
-    return write(signInAppPayload)
+  def getSignInAppPayload(picker: String): String = {
+    return write(signInAppPayload).replace("StringReplace", picker)
+  }
+
+  val logoutPayload = LogoutPayload(
+    "logout", "wh-picker", "StringReplace"
+  )
+
+  def getLogoutPayload(pickerId: String): String = {
+    return write(logoutPayload).replace("StringReplace", pickerId)
+
   }
 
   val pickTrayPayload = PickTrayPayload("StringReplace")
@@ -163,15 +176,15 @@ object OrderPayloadCreation {
   }
 
   def getPickedItemsPayload(bin: String, ucode: String, barcodesStr: String): String = {
-    val pickedItems= ArrayBuffer[BarcodePayload]()
+    val pickedItems = ArrayBuffer[BarcodePayload]()
     val barcodes: Array[String] = barcodesStr.split(",")
     for (barcode <- barcodes) {
-      pickedItems+=BarcodePayload(barcode.replace("Vector(", "").replace(")", "").trim)
+      pickedItems += BarcodePayload(barcode.replace("Vector(", "").replace(")", "").trim)
     }
     val pickedItemsPayload = PickedItemsPayload(bin, 1090909, List(), "GLYCIPHAGE 850MG TAB", 3, 10, pickedItems, "IN_TRAY", ucode)
 
     val abc = write(pickedItemsPayload)
-    println("Payload                  "+abc)
+    println("Payload                  " + abc)
     return abc
 
   }

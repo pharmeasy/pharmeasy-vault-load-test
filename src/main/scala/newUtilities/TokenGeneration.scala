@@ -11,13 +11,13 @@ object TokenGeneration {
   private var javaWTGenerator: JavaWTGenerator = JavaWTGenerator.getInstance
   private var HEADER: String = "{\"typ\":\"JWT\",\"alg\":\"HS512\"}"
   private var SECRET: String = "mercury@2018"
-  private var DEFAULT_THEA: String = "th124"
+  private var DEFAULT_THEA: String = "th032"
 
-//    def generateToken(payload: JWTAuthHeaderPayload): String = {
-//      val token =
-//        javaWTGenerator.encode(JWTAlgorithm.HMAC512, HEADER, payload, SECRET)
-//      token
-//    }
+  //    def generateToken(payload: JWTAuthHeaderPayload): String = {
+  //      val token =
+  //        javaWTGenerator.encode(JWTAlgorithm.HMAC512, HEADER, payload, SECRET)
+  //      token
+  //    }
 
   def getDefaultToken(): String = {
     val token: String = javaWTGenerator.encode(JWTAlgorithm.HMAC512,
@@ -93,11 +93,11 @@ object TokenGeneration {
     payload.setName("Automation Picker User")
     payload.setStore("")
     payload.setScopes(Arrays.asList("store-billing-user",
-    "store-pharmacist",
-    "wh-billing-user",
-    "wh-gate-pass-user",
-    "wh-signatory",
-    "wh-super-admin"))
+      "store-pharmacist",
+      "wh-billing-user",
+      "wh-gate-pass-user",
+      "wh-signatory",
+      "wh-super-admin"))
     payload.setUser("Automation.User@gmail.com")
     payload.setTenant(String.valueOf(thea))
     payload
