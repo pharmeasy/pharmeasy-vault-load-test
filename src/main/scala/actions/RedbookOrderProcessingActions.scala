@@ -22,6 +22,7 @@ object RedbookOrderProcessingActions {
   def createOrderInRedBook(baseUrl: String = newConfigManager.getString("redbook.base_url")) = {
     http("create redbook order")
       .post(baseUrl + "/service/v1/pe/${retailerRedbookId}/order")
+      .header("Authorization","Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYXBpIn0.YjyTiQfvbDTmGPLSdM72c3_mbNNS73unqdLX6rT2HCA")
       .body(StringBody(RedbookOrderCreate.getOrderPayload()))
       .asJson
       .check(
@@ -38,34 +39,27 @@ object RedbookOrderProcessingActions {
   def getOrderByPEId(baseUrl: String = newConfigManager.getString("redbook.base_url")) =
     http("Get order details by PE Id")
     .get(baseUrl + "/service/v0/order")
+      .header("Authorization","Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYXBpIn0.YjyTiQfvbDTmGPLSdM72c3_mbNNS73unqdLX6rT2HCA")
     .queryParam("reference_order_id",session=>getFromSession(session,"fetch_reference_order_id"))
     .asJson
     .check(status.is(200),
       jsonPath("$.status").saveAs("status"))
 
   def updateStatus(baseUrl: String = newConfigManager.getString("redbook.base_url")
-                              ,updateStatus: String,updatePayload:String):HttpRequestBuilder =
+                              ,updateStatus: String):HttpRequestBuilder =
     http("update redbook order")
       .patch( baseUrl+"/service/v0/pe/order/"+updateStatus)
+      .header("Authorization","Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYXBpIn0.YjyTiQfvbDTmGPLSdM72c3_mbNNS73unqdLX6rT2HCA")
       .queryParam("reference_order_id",session=>getFromSession(session,"fetch_reference_order_id"))
-      .body(StringBody(updatePayload))
-      .asJson
+      .header("accept","application/json")
+      .header("contentType","application/json")
+//      .body(StringBody(updatePayload))
+//      .asJson
       .check(status.is(200))
 
   def update(baseUrl: String = newConfigManager.getString("redbook.base_url"),
              updateString: String):ChainBuilder = {
-    var updatePayload:String = null
-
-    updateString match {
-      case "ACCEPTED" => updatePayload = RedbookOrderUpdate.getAccepted()
-      case "REJECTED" => updatePayload = RedbookOrderUpdate.getRejected()
-      case "ON_HOLD" => updatePayload = RedbookOrderUpdate.getOnHold()
-      case "CANCELLED" => updatePayload = RedbookOrderUpdate.getCancelled()
-      case "READY_FOR_DISPATCH" => updatePayload = RedbookOrderUpdate.getRFD()
-      case "DELIVERED" => updatePayload = RedbookOrderUpdate.getDelivered()
-    }
-
-    exec(updateStatus(baseUrl,updateString,updatePayload))
+    exec(updateStatus(baseUrl,updateString))
      .exitHereIfFailed
      .exec(getOrderByPEId())
   }
@@ -101,6 +95,7 @@ object RedbookOrderProcessingActions {
   def billTheOrder(baseUrl: String = newConfigManager.getString("redbook.base_url")):HttpRequestBuilder =
     http("Bill the Redbook Order")
       .post(session =>baseUrl + "/service/v1/pe/"+getFromSession(session,"fetch_app_id")+"/order")
+      .header("Authorization","Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYXBpIn0.YjyTiQfvbDTmGPLSdM72c3_mbNNS73unqdLX6rT2HCA")
       .queryParam("reference_order_id",session=>getFromSession(session,"fetch_reference_order_id"))
       .body( StringBody(session => RedbookBillOrder
         .getBillPayload(session("fetch_meds").as[Array[Medicines]],
