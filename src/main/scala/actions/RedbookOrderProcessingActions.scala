@@ -45,23 +45,30 @@ object RedbookOrderProcessingActions {
     .check(status.is(200),
       jsonPath("$.status").saveAs("status"))
 
+  def getOrderByPEIdWithStatus(baseUrl: String = newConfigManager.getString("redbook.base_url"),orderStatus:String) =
+    http("Get order details by PE Id")
+      .get(baseUrl + "/service/v0/order")
+      .header("Authorization","Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYXBpIn0.YjyTiQfvbDTmGPLSdM72c3_mbNNS73unqdLX6rT2HCA")
+      .queryParam("reference_order_id",session=>getFromSession(session,"fetch_reference_order_id"))
+      .asJson
+      .check(status.is(200),
+        jsonPath("$.status").is(orderStatus).saveAs("status"))
+
   def updateStatus(baseUrl: String = newConfigManager.getString("redbook.base_url")
                               ,updateStatus: String):HttpRequestBuilder =
     http("update redbook order")
-      .patch( baseUrl+"/service/v0/pe/order/"+updateStatus)
+      .get( baseUrl+"/service/v0/pe/order/"+updateStatus)
       .header("Authorization","Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYXBpIn0.YjyTiQfvbDTmGPLSdM72c3_mbNNS73unqdLX6rT2HCA")
       .queryParam("reference_order_id",session=>getFromSession(session,"fetch_reference_order_id"))
       .header("accept","application/json")
       .header("contentType","application/json")
-//      .body(StringBody(updatePayload))
-//      .asJson
       .check(status.is(200))
 
   def update(baseUrl: String = newConfigManager.getString("redbook.base_url"),
              updateString: String):ChainBuilder = {
     exec(updateStatus(baseUrl,updateString))
      .exitHereIfFailed
-     .exec(getOrderByPEId())
+     .exec(getOrderByPEIdWithStatus(baseUrl,updateString))
   }
 
   def statusUpdates(baseUrl: String = newConfigManager.getString("redbook.base_url")): ChainBuilder = {
@@ -74,7 +81,7 @@ object RedbookOrderProcessingActions {
           5.0 -> update(baseUrl, "CANCELLED")
         ),
         "ACCEPTED" -> randomSwitch(
-          90.0 -> exec(billTheOrder()).exitHereIfFailed.exec(getOrderByPEId()),
+          90.0 -> exec(billTheOrder()).exitHereIfFailed.exec(getOrderByPEIdWithStatus(baseUrl,"BILLED")),
           5.0 -> update(baseUrl, "ON_HOLD"),
           5.0 -> update(baseUrl, "CANCELLED")
         ),
@@ -83,7 +90,7 @@ object RedbookOrderProcessingActions {
           10.0 -> update(baseUrl, "CANCELLED")
         ),
         "ON_HOLD" -> randomSwitch(
-          90.0 -> exec(billTheOrder()).exitHereIfFailed.exec(getOrderByPEId()),
+          90.0 -> exec(billTheOrder()).exitHereIfFailed.exec(getOrderByPEIdWithStatus(baseUrl,"BILLED")),
           10.0 -> update(baseUrl, "CANCELLED")
         ),
         "READY_FOR_DISPATCH" -> update(baseUrl, "DELIVERED")
