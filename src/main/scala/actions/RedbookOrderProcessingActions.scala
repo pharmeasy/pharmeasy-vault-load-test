@@ -35,9 +35,6 @@ object RedbookOrderProcessingActions {
         bodyString.saveAs("create_response"))
   }
 
-
-
-
   def getOrderByPEId(baseUrl: String = newConfigManager.getString("redbook.base_url")) =
     http("Get order details by PE Id")
     .get(baseUrl + "/service/v0/order")
