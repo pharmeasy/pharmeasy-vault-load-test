@@ -69,6 +69,7 @@ object RedbookOrderProcessingActions {
     exec(updateStatus(baseUrl,updateString))
      .exitHereIfFailed
      .exec(getOrderByPEIdWithStatus(baseUrl,updateString))
+      .exitHereIfFailed
   }
 
   def statusUpdates(baseUrl: String = newConfigManager.getString("redbook.base_url")): ChainBuilder = {

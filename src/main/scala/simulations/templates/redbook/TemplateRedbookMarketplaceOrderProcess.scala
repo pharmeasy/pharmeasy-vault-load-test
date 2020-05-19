@@ -15,8 +15,8 @@ class TemplateRedbookMarketplaceOrderProcess extends io.gatling.core.Predef.Simu
 
   private val protocol = http.disableWarmUp.disableCaching
   private val DEMILITER = "-"
-  private val rampUpUsers = getProperty("rampUpUsers", "1").trim.toInt
-  private val rampUpDuration = getProperty("rampUpDuration", "5").trim.toInt
+  private val rampUpUsers = getProperty("rampUpUsers", "400").trim.toInt
+  private val rampUpDuration = getProperty("rampUpDuration", "60").trim.toInt
 
   private val fetchOrderDelayStartInSeconds = 3
 
