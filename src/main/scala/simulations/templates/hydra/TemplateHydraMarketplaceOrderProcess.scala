@@ -13,7 +13,7 @@ class TemplateHydraMarketplaceOrderProcess extends io.gatling.core.Predef.Simula
 
   private val protocol = http.disableWarmUp.disableCaching
   private val DEMILITER = "-"
-  private val rampUpUsers = getProperty("rampUpUsers", "50").trim.toInt
+  private val rampUpUsers = getProperty("rampUpUsers", "2").trim.toInt
   private val rampUpDuration = getProperty("rampUpDuration", "10").trim.toInt
 
   private val fetchOrderDelayStartInSeconds = 2

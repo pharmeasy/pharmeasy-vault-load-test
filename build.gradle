@@ -50,7 +50,7 @@ task loadTest(type: JavaExec) {
     ]
     main = "io.gatling.app.Gatling"
     args = [
-            "--simulation",System.getProperty("loadTestClass","simulations.templates.redbook.TemplateRedbookMarketplaceOrderProcess"),
+            "--simulation",System.getProperty("loadTestClass","simulations.templates.hydra.TemplateHydraMarketplaceOrderProcess"),
             "--results-folder", "gatling-results",
             "--binaries-folder", sourceSets.test.output.toString(),
             "--simulations-folder", sourceSets.test.scala.srcDirs
