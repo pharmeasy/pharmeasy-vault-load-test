@@ -38,6 +38,7 @@ dependencies {
     compile group: 'com.opencsv', name: 'opencsv', version: '5.0'
     compile group: 'org.scala-tools', name: 'maven-scala-plugin', version: '2.11'
     compile "in.pharmeasy.automation:pharmeasy-api-utils:${frmk_version}"
+
 }
 
 

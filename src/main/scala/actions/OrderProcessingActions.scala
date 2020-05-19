@@ -1,5 +1,7 @@
 package actions
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
+
 import scm.OrderPayloadCreation
 import scm.CreateB2BOrderPayload
 import scm.CreateGenerateBillPayload
@@ -8,7 +10,6 @@ import io.gatling.http.Predef._
 import io.gatling.http.request.builder.HttpRequestBuilder
 import newUtilities.newConfigManager
 import utils.ConfigManager.getString
-
 object OrderProcessingActions extends BaseActions {
   def addToSession(session: Session, attributes: (String, Any)*): Session = session.setAll(attributes)
 
@@ -56,8 +57,8 @@ object OrderProcessingActions extends BaseActions {
       .queryParam("referenceId", session => getFromSession(session, "externalOrderId"))
       .check(status.is(200),
         jsonPath("$.elementsCount").is("1"),
+        jsonPath("$.data[0].referenceId").is(session => s"${getFromSession(session, "externalOrderId")}"),
         jsonPath("$.data[0].id").notNull.saveAs("pickerTaskId"))
-
 
   def generateBill(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Change the status of external order id to BILLING  IN PROGRESS")
@@ -80,7 +81,7 @@ object OrderProcessingActions extends BaseActions {
   def signInToPickerApp(baseUrl: String = newConfigManager.getString("picker.signin.url")): HttpRequestBuilder =
     http("Sign In to Picker App")
       .post(session => baseUrl)
-      .body(StringBody(session=>OrderPayloadCreation.getSignInAppPayload(s"${getFromSession(session, "pickerUser")}")))
+      .body(StringBody(session => OrderPayloadCreation.getSignInAppPayload(s"${getFromSession(session, "pickerUser")}")))
       .asJson
       .check(status.is(200),
         jsonPath("$.token").notNull.saveAs("token"),
@@ -90,18 +91,19 @@ object OrderProcessingActions extends BaseActions {
     http("Logout from Picker App")
       .post(session => baseUrl)
       .header("Authorization", session => s"${getFromSession(session, "token")}")
-      .body(StringBody(session=>OrderPayloadCreation.getLogoutPayload(s"${getFromSession(session, "pickerId")}")))
+      .body(StringBody(session => OrderPayloadCreation.getLogoutPayload(s"${getFromSession(session, "pickerId")}")))
       .asJson
       .check(status.is(200),
         jsonPath("$.action").is("logout"),
-        jsonPath("$.userId").is(session=>s"${getFromSession(session, "pickerId")}"))
+        jsonPath("$.userId").is(session => s"${getFromSession(session, "pickerId")}"))
 
   def aggregateAssignedPickerTasks(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Get Aggregated Assigned Picker Task")
       .get(session => baseUrl + "/aggregatePickerTasks/assigned")
       .header("Authorization", session => s"${getFromSession(session, "token")}")
       .check(status.is(200),
-        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"))
+        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
+        jsonPath("$.aggregatePickerTask.taskCount").saveAs("aggregatePickerTaskCount"))
 
 
   def pickTray(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
@@ -125,8 +127,10 @@ object OrderProcessingActions extends BaseActions {
       .check(status.is(200),
         jsonPath("$.nextPickerTaskItem.ucode").notNull.saveAs("ucode"),
         jsonPath("$.nextPickerTaskItem.binId").notNull.saveAs("bin"),
-        jsonPath("$.nextPickerTaskItem.status").is("CREATED"),
-        jsonPath("$.nextPickerTaskItem.pickerTaskId").notNull.saveAs("pickerTaskId"))
+        jsonPath("$.nextPickerTaskItem.status").is("CREATED"))
+
+  //,
+  //    jsonPath("$.nextPickerTaskItem.pickerTaskId").notNull.saveAs("pickerTaskId"))
 
   def searchInventoryPostTaskPicked(baseUrl: String = newConfigManager.getString("search_inventory_url")): HttpRequestBuilder =
     http("Search Inventory")

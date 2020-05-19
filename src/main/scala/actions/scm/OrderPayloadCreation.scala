@@ -19,7 +19,7 @@ object OrderPayloadCreation {
 
   def getTrayListFeeder() = trayData.map(e => Map("trayId" -> e(0))).toArray
 
-  def getPickerListFeeder() = pickerData.map(e => Map("pickerUser" -> e(0))).toArray
+    def getPickerListFeeder() = pickerData.map(e => Map("token" -> e(0),"pickerId"->e(1))).toArray
 
   private def getB2CPayload(max: Int = 2): List[Item] = {
     var items = List[Item]()
