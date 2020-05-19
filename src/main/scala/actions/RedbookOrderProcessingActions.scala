@@ -74,7 +74,8 @@ object RedbookOrderProcessingActions {
 
   def statusUpdates(baseUrl: String = newConfigManager.getString("redbook.base_url")): ChainBuilder = {
     doWhile(session => !(getFromSession(session, "status").equals("CANCELLED")) &&
-      !(getFromSession(session, "status").equals("DELIVERED")))(
+      !(getFromSession(session, "status").equals("DELIVERED")) &&
+      !(getFromSession(session, "status").equals("REJECTED")))(
       doSwitch(session => getFromSession(session, "status"))(
         "PLACED" -> randomSwitch(
           90.0 -> update(baseUrl, "ACCEPTED"),
