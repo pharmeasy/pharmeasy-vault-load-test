@@ -12,8 +12,8 @@ import scala.concurrent.duration._
 
 class TemplateSearchToPlaceOrderAndCancel extends BaseTemplate {
 
-  private val rampUpUsers = getProperty("rampUpUsers", "1").trim.toInt
-  private val rampUpDuration = getProperty("rampUpDuration", "2").trim.toInt
+  private val rampUpUsers = getProperty("rampUpUsers", "10").trim.toInt
+  private val rampUpDuration = getProperty("rampUpDuration", "10").trim.toInt
 
   override def name() = "search - place order - cancel"
 
@@ -27,8 +27,7 @@ class TemplateSearchToPlaceOrderAndCancel extends BaseTemplate {
         ("query", randomMedicineQuery),
         ("contactNumber", randomMobileNumber),
         ("paymentId", randomPayment("paymentId")),
-        ("paymentSubId", randomPayment("paymentSubId"))
-      )
+        ("paymentSubId", randomPayment("paymentSubId")))
     })
     .exec(recommendations())
     .exitHereIfFailed
@@ -68,6 +67,9 @@ class TemplateSearchToPlaceOrderAndCancel extends BaseTemplate {
     .exitHereIfFailed
     .exec(cartItems())
     .exitHereIfFailed
+    //    .exec(doIf(session => session("isRxRequired").asOption[Boolean].getOrElse(false)) {
+    //      exec("")
+    //    })
     .exec(placeOrder())
     .exitHereIfFailed
     .exec(fetchOrders())
@@ -81,7 +83,8 @@ class TemplateSearchToPlaceOrderAndCancel extends BaseTemplate {
     .exec(paymentInstrumentationAfterOrderPlacement())
     .exitHereIfFailed
     .exec(doIf(session => isCODPayment(session)) {
-      exec(paymentInvocationDetails()).exitHereIfFailed
+      exec(paymentInvocationDetails())
+        .exitHereIfFailed
         .exec(codPayment())
         .exitHereIfFailed
         .exec(onlinePaymentStatusVerification())

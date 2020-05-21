@@ -16,7 +16,7 @@
     </appender>
    <logger name="io.gatling.http.engine.response" level="TRACE" />
 
-    <root level="WARN">
+    <root level="INFO">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="FILE" />
     </root>

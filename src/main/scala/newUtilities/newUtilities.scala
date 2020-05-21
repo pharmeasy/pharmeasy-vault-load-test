@@ -1,19 +1,19 @@
-package utils
+package newUtilities
 
-import java.io.{BufferedWriter, File, FileInputStream, FileWriter, InputStreamReader}
+import java.io._
 import java.util.Collections
 
 import com.opencsv.CSVReader
 import org.apache.commons.lang3.RandomStringUtils
 import org.json4s._
 import org.json4s.jackson.JsonMethods
-import org.json4s.jackson.Serialization.{read, write}
+import org.json4s.jackson.Serialization.read
 
 import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.reflect.Manifest
 
-object Utilities {
+object newUtilities {
 
   private val random = scala.util.Random
 
@@ -43,9 +43,9 @@ object Utilities {
 
   implicit val formats = DefaultFormats
 
-  def deserializeJson[A](json: String)(implicit mf: Manifest[A]) = read[A](json)
+  def serializeJson[A](json: String)(implicit mf: Manifest[A]) = read[A](json)
 
-  def serializeJson(json: Any) = JsonMethods.mapper.writeValueAsString(Extraction.decompose(json)(formats))
+  def deserializeJson(json: Any) = JsonMethods.mapper.writeValueAsString(Extraction.decompose(json)(formats))
 
   def readCSV(file: String) = {
     val stream = openStream(file)
