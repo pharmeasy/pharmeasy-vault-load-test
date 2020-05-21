@@ -70,5 +70,10 @@ task loadTest(type: JavaExec) {
     systemProperty('gatling.ahc.requestTimeout', System.getProperty('requestTimeout', '60000'))
     systemProperty('gatling.ahc.handshakeTimeout', System.getProperty('handshakeTimeout', '60000'))
     systemProperties System.properties
+    def users = System.getProperty('users', "1")
+    def durationInSec = System.getProperty('durationInSec', "1")
+    def useRampUp = "false".equals(System.getProperty("useRampUp", "false")) ? "constant-users" : "rampup-users"
+
+    systemProperty('gatling.core.outputDirectoryBaseName', "${useRampUp}-${users}-per-sec-for-${durationInSec}-sec-${System.currentTimeMillis()}")
 }
 
