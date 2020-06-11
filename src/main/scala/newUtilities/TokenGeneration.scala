@@ -11,7 +11,7 @@ object TokenGeneration {
   private var javaWTGenerator: JavaWTGenerator = JavaWTGenerator.getInstance
   private var HEADER: String = "{\"typ\":\"JWT\",\"alg\":\"HS512\"}"
   private var SECRET: String = "mercury@2018"
-  private var DEFAULT_THEA: String = "th032"
+  private var DEFAULT_THEA: String = "th124"
 
   //    def generateToken(payload: JWTAuthHeaderPayload): String = {
   //      val token =

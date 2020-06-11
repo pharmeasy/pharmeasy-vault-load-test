@@ -19,26 +19,19 @@ object OrderPayloadCreation {
 
   def getTrayListFeeder() = trayData.map(e => Map("trayId" -> e(0))).toArray
 
-    def getPickerListFeeder() = pickerData.map(e => Map("token" -> e(0),"pickerId"->e(1))).toArray
+  def getPickerListFeeder() = pickerData.map(e => Map("token" -> e(0),"pickerId"->e(1))).toArray
 
-  private def getB2CPayload(max: Int = 2): List[Item] = {
-    var items = List[Item]()
-    val data = b2cMedicinesData(0);
-    val item = Item(77, data(0), data(1), data(2))
-    items = item :: items
-    items
-  }
-
-  private def getB2CPayloadForMultipleUcode(max: Int = 2): List[Item] = {
+  private def getB2CPayload(noOfUcodes: Int = 3,noOfQty: Int=5): List[Item] = {
     val shuffled = random.shuffle(b2cMedicinesData)
-    val num = randomNumberBetweenRange(1, max)
+    val ucodeCnt=randomNumberBetweenRange(1,noOfUcodes)
     var items = List[Item]()
-    for (a <- 0 to num - 1) {
-      val data = shuffled(a);
-      val item = Item(77, data(0), data(1), data(2))
+    for(i<- 0 to ucodeCnt-1) {
+      val qty = randomNumberBetweenRange(1, noOfQty)
+      val data = shuffled(i);
+      val item = Item(77, data(0), data(1), qty)
       items = item :: items
     }
-    return items
+    items
   }
 
   def getJsonString(): String = write(getB2CPayload())
@@ -65,9 +58,9 @@ object OrderPayloadCreation {
     "qwerty@gmail.com",
     "Kiran",
     "Deep",
-    "065b642a-26e5-4be3-ac29-01d7ee605a46",
+    "2800af35-0b7f-4324-9cf8-76143baceb72",
     "SCM",
-    2,
+    34,
     null,
     null,
     address,
@@ -100,18 +93,11 @@ object OrderPayloadCreation {
   def getOrderPayload(): String = {
     return write(orderPayload).replace("\"StringReplace\"", "${items}")
   }
-
-  val multiPickingPayload = MultiPickingConfigPayload(
-    1,
-    1,
-    5,
-    "MAX_IDLE_TIME",
-    "NOT_APPLICABLE"
-  )
-
-
-  def getMultiPickingConfigPayload(): String = {
-    return write(multiPickingPayload)
+  def getMultiPickingConfigPayload(maxProcessCount:Integer): String = {
+    val multiPickPayload = MultiPickingConfigPayload(1,maxProcessCount,5,
+      "MAX_IDLE_TIME",
+      "NOT_APPLICABLE")
+    return write(multiPickPayload)
   }
 
   val prioritisePickerTaskPayload = PrioritisePickerTaskPayload(
@@ -175,7 +161,17 @@ object OrderPayloadCreation {
     response
   }
 
-  def getPickedItemsPayload(bin: String, ucode: String, barcodesStr: String): String = {
+  def getPickedItemsPayload(bin: String, ucode: String, barcode: String): String = {
+    val pickedItems = ArrayBuffer[BarcodePayload]()
+    pickedItems += BarcodePayload(barcode.replace("Vector(", "").replace(")", "").trim)
+    val pickedItemsPayload = PickedItemsPayload(bin, 1090909, List(), "GLYCIPHAGE 850MG TAB", 3, 10, pickedItems, "IN_TRAY", ucode)
+    val abc = write(pickedItemsPayload)
+    println(abc)
+    return abc
+
+  }
+
+  def getPickedItemsPayloadBkp(bin: String, ucode: String, barcodesStr: String): String = {
     val pickedItems = ArrayBuffer[BarcodePayload]()
     val barcodes: Array[String] = barcodesStr.split(",")
     for (barcode <- barcodes) {
@@ -184,7 +180,6 @@ object OrderPayloadCreation {
     val pickedItemsPayload = PickedItemsPayload(bin, 1090909, List(), "GLYCIPHAGE 850MG TAB", 3, 10, pickedItems, "IN_TRAY", ucode)
 
     val abc = write(pickedItemsPayload)
-    println("Payload                  " + abc)
     return abc
 
   }

@@ -20,7 +20,7 @@ object newUtilities {
   private val count: Integer=0
 
 
-  def randomNumberBetweenRange(start: Int, end: Int) = start + random.nextInt((end - start) + 1)
+  def randomNumberBetweenRange(start: Int, end: Int):Integer = start + random.nextInt((end - start) + 1)
 
   def randomFromSeq(seq: Seq[_]) = seq(randomNumberBetweenRange(0, seq.size - 1))
 

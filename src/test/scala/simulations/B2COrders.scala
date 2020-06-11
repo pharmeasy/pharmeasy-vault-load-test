@@ -1,13 +1,14 @@
 package simulations
 
 
-import actions.OrderProcessingActions
-import actions.OrderProcessingActions.{addToSession, getFromSession}
+import java.lang.System._
+import java.util
+
+import actions.OrderProcessingActions._
 import actions.scm.OrderPayloadCreation
 import io.gatling.core.Predef._
-import io.gatling.http.Predef.{http, _}
+import io.gatling.http.Predef._
 import newUtilities.TokenGeneration
-import newUtilities.newUtilities
 import org.json4s.DefaultFormats
 
 import scala.concurrent.duration._
@@ -16,56 +17,118 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
 
   private val random = scala.util.Random
   implicit val formats = DefaultFormats
+  private val rampUpCreationUsers = getProperty("rampUpCreationUsers", "1").trim.toInt
+  private val rampUpUsers = getProperty("rampUpUsers", "2").trim.toInt
+  private val rampUpDuration = getProperty("rampUpDuration", "5").trim.toInt
+  //private val rampUpCreationDuration = getProperty("rampUpCreationDuration", "10").trim.toInt
 
-  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl("https://qa2.thea.gomercury.in")
+  private val DELIMITER = "::"
+
+  private val fetchOrderDelayStartInSeconds = 3
+  private val maxProcessCount = 2
+  private val queue = new java.util.LinkedList[String]
+  private val pickerTasks = new util.LinkedList[String]
+  private val processOrders = new util.LinkedList[String]
+
+  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl("https://staging.thea.gomercury.in")
     .acceptHeader("application/json")
     .contentTypeHeader("application/json")
     .authorizationHeader(TokenGeneration.getDefaultToken())
-    .disableWarmUp.disableCaching
+    .disableWarmUp
+    .disableCaching
 
   private val externalOrderIdfeeder = Iterator.continually(Map("externalOrder" -> s"AL-${scala.math.abs(java.util.UUID.randomUUID.getMostSignificantBits)}"))
   private val b2cMedsFeeder = Iterator.continually(Map("items" -> OrderPayloadCreation.getJsonString()))
 
-  private val createB2COrders = scenario("B2C Order Test")
+  private val createB2COrders = scenario("Create B2C Order")
     .feed(externalOrderIdfeeder)
     .feed(b2cMedsFeeder)
-    .feed(OrderPayloadCreation.getTrayListFeeder())
+    .exec(generateB2COrders())
+    .exec(session => {
+      val externalOrderId = session("externalOrderId").asOption[String]
+      val size = session("orderedItems").asOption[Any].seq.size
+      println(externalOrderId + " :: " + size)
+      if (!externalOrderId.isEmpty) {
+        queue.add(externalOrderId.get + DELIMITER + size)
+      }
+      session
+    })
+
+  val processB2COrders = scenario("Process B2C Order")
     .feed(OrderPayloadCreation.getPickerListFeeder())
-    .exec(http("CreateB2COrder")
-      .post("/api/outward/orders")
-      .body(StringBody(OrderPayloadCreation.getOrderPayload()))
-      .check(status.is(200), jsonPath("$..externalOrderId").notNull.saveAs("externalOrderId")))
-    .asLongAsDuring(session => session("pickerTaskId").asOption[String].isEmpty, (10 seconds)) {
-      exec(OrderProcessingActions.getPickerTaskFromEpicenter())
-    }
-    .exitHereIfFailed
-    .exec(OrderProcessingActions.prioritisePickerTask())
-    .exec(OrderProcessingActions.configureMultiPicking())
-    .exec(session => addToSession(session, ("aggregatePickerTaskCount", "0")))
-    .asLongAsDuring(session => session("aggregatePickerTaskCount").as[String].equals("0"), (10 seconds)) {
-      exec(OrderProcessingActions.aggregateAssignedPickerTasks())
-    }
-    .asLongAsDuring(session => session("aggregatedPickerTaskId").asOption[String].isEmpty, (10 seconds)) {
-      exec(OrderProcessingActions.pickTray())
-    }.exitHereIfFailed
-    .exec(OrderProcessingActions.aggregatePickerTaskPicked())
-    .exec(OrderProcessingActions.searchInventoryPostTaskPicked())
-    .exitHereIfFailed
-    .exec(OrderProcessingActions.getBarcodes())
-    .exec(OrderProcessingActions.pickedItems())
-    .exitHereIfFailed
-    .exec(OrderProcessingActions.completePickedItems())
-    .exitHereIfFailed
-    .exec(OrderProcessingActions.scanZone())
-    .exec(OrderProcessingActions.generateBill())
-  //  .exec(OrderProcessingActions.logoutFromPickerApp())
-  //  .exec(session => addToSession(session, ("biller_token", TokenGeneration.getBillerToken())))
-  //    .exec(OrderProcessingActions.generateStoreInvoice())
-  //    .exec(OrderProcessingActions.generateDispatchNote())
-  //    .exec(OrderProcessingActions.recievedAtStore())
-  //    .exec(OrderProcessingActions.generateCustomerInvoice())
+    .pause(fetchOrderDelayStartInSeconds second)
+    .exec(doIf(session=> !queue.isEmpty) {
+        exec(repeat(maxProcessCount, "count") {
+          exec(session => {
+            val id = queue.remove(0)
+            val value = id.split(DELIMITER)
+            processOrders.add(value(0))
+            session.set("externalOrderId", value(0)).set("noOfUcodes", value(1).toInt).set("totalUcodes", 0)
+          })
+            .asLongAsDuring(session => !session("noOfUcodes").as[Int].equals(session("totalUcodes").as[Int]), (10 seconds)) {
+              exec(getPickerTaskFromEpicenter())
+            }.exitHereIfFailed
+            .exec(session => {
+              val pickerId = session("pickerTaskId").as[String].trim
+              println("Picker Task Id  "+pickerId)
+              println("Sessions "+session)
+              pickerTasks.add(pickerId)
+              session
+            })
+            .exec(prioritisePickerTask())
+            .exitHereIfFailed
+        })
+          .exec(configureMultiPicking(maxProcessCount))
+          .exec(session => {
+            val initialValue = 0
+            session.set("aggregatePickedCount", initialValue).set("aggregatePickerTaskCount", initialValue)
+          })
+          .asLongAsDuring(session => !session("aggregatePickerTaskCount").as[String].equals(maxProcessCount.toString), (10 seconds)) {
+            exec(aggregateAssignedPickerTasks())
+          }
+          // .repeat(maxProcessCount, "count") {
+          .exec(getAvailableTray(maxProcessCount))
+          .foreach("${trayIds}", "tray") {
+            exec(session => {
+              val tray = session("tray")
+              session.set("trayId", tray)
+            })
+              .exec(pickLastTray())
+          }
+          .doIf(session => !session("aggregatedPickerTaskId").asOption[String].isEmpty) {
+            exec(aggregatePickerTaskPicked())
+          }
+          .asLongAsDuring(session => !"ZONE_SCANNING".equals(session("aggregatePickerTaskStatus").as[String]), 10 second) {
+            exec(getBarcodes())
+              .foreach("${barcodeList}", "barcode") {
+                exec(sessionFunction = session => {
+                  session.set("barcode", session("barcode").as[String])
+                })
+                  .exec(pickedItems())
+                  .exitHereIfFailed
+              }
+              .exec(completePickedItems())
+          }
+          .repeat(maxProcessCount, "count") {
+            exec(session => {
+              val pickerTaskId = pickerTasks.remove(0)
+              session.set("pickerTaskId", pickerTaskId)
+            })
+              .exec(scanZone())
+          }
+          .repeat(maxProcessCount, "count") {
+            exec(session => {
+              val orderId = processOrders.remove(0)
+              session.set("externalOrderId", orderId)
+            })
+              .exec(generateBill())
+          }
+          .exec(aggregateUnAssignedPickerTasks())
+      })
+
 
   setUp(
-    createB2COrders.inject(rampUsers(System.getProperty("b2cRampUpUsers", "1").toInt) during (System.getProperty("b2cRampUpDuration", "1").toInt seconds))
+    createB2COrders.inject(constantUsersPerSec(rampUpCreationUsers) during (rampUpDuration)),
+    processB2COrders.inject(rampUsers(rampUpUsers) during (rampUpDuration))
   ).protocols(httpProtocol)
 }

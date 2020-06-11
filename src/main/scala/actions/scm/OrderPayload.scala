@@ -16,7 +16,7 @@ case class OrderPayload(
                          doctorName: String,
                          storeId: String,
                          storeName: String,
-                         warehouseId: Double,
+                         warehouseId: Integer,
                          pickerTaskId: String,
                          trayId: String,
                          address: Address,

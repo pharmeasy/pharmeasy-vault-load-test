@@ -4,6 +4,6 @@ case class Item(
                  medicineId: Double,
                  name: String,
                  ucode: String,
-                 orderedQuantity: String
+                 orderedQuantity: Integer
                )
 

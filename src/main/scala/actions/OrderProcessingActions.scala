@@ -10,6 +10,7 @@ import io.gatling.http.Predef._
 import io.gatling.http.request.builder.HttpRequestBuilder
 import newUtilities.newConfigManager
 import utils.ConfigManager.getString
+
 object OrderProcessingActions extends BaseActions {
   def addToSession(session: Session, attributes: (String, Any)*): Session = session.setAll(attributes)
 
@@ -20,6 +21,15 @@ object OrderProcessingActions extends BaseActions {
       .asJson
       .check(
         status.is(200))
+
+  def generateB2COrders(baseUrl: String = getString("outward.create_order"), thea: String = getString("outward.thea")) =
+    http("Create B2C Order")
+      .post(session => baseUrl + "/api/outward/orders")
+      .body(StringBody(OrderPayloadCreation.getOrderPayload()))
+      .asJson
+      .check(
+        status.is(200), jsonPath("$..externalOrderId").notNull.saveAs("externalOrderId"),
+        jsonPath("$.items[*].ucode").findAll.saveAs("orderedItems"))
 
 
   def fetchOrderId(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
@@ -43,30 +53,38 @@ object OrderProcessingActions extends BaseActions {
         jsonPath("$.orderGroupId").notNull)
 
 
-  def configureMultiPicking(baseUrl: String = newConfigManager.getString("multi.picking.config")) =
+  def configureMultiPicking(maxProcessCount: Integer, baseUrl: String = newConfigManager.getString("multi.picking.config")) =
     http("Configure Multi Picking")
       .put(session => baseUrl + "/multiPickingConfig")
-      .body(StringBody(OrderPayloadCreation.getMultiPickingConfigPayload()))
+      .body(StringBody(OrderPayloadCreation.getMultiPickingConfigPayload(maxProcessCount)))
       .asJson
-      .check(status.is(200),
-        jsonPath("$.id").notNull)
+      .check(status.is(200))
 
   def getPickerTaskFromEpicenter(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Get picker task from epicenter")
       .get(session => baseUrl + "/pickerTasks")
-      .queryParam("referenceId", session => getFromSession(session, "externalOrderId"))
+      .queryParam("referenceId", session => s"${getFromSession(session, "externalOrderId")}")
       .check(status.is(200),
         jsonPath("$.elementsCount").is("1"),
-        jsonPath("$.data[0].referenceId").is(session => s"${getFromSession(session, "externalOrderId")}"),
-        jsonPath("$.data[0].id").notNull.saveAs("pickerTaskId"))
+        jsonPath("$.data[0].referenceId").is(session => getFromSession(session, "externalOrderId")),
+        jsonPath("$.data[0].id").notNull.saveAs("pickerTaskId"),
+        jsonPath("$.data[0].totalUcode").saveAs("totalUcodes"))
 
-  def generateBill(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
-    http("Change the status of external order id to BILLING  IN PROGRESS")
-      .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId")}/status")
-      .body(StringBody(session => OrderPayloadCreation.getGenerateBillPayload("BILLING_IN_PROGRESS")))
-      .asJson
-      .check(status.is(200),
-        jsonPath("$.status").is("BILLING_IN_PROGRESS": String))
+    def generateBill(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+      http("Change the status of external order id to BILLING  IN PROGRESS")
+        .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId")}/status")
+        .body(StringBody(session => OrderPayloadCreation.getGenerateBillPayload("BILLING_IN_PROGRESS")))
+        .asJson
+        .check(status.is(200),
+          jsonPath("$.status").is("BILLING_IN_PROGRESS": String))
+
+//  def generateBill(orderId: String, baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+//    http("Change the status of external order id to BILLING  IN PROGRESS")
+//      .put(baseUrl + s"/orders/" + orderId + "/status")
+//      .body(StringBody(session => OrderPayloadCreation.getGenerateBillPayload("BILLING_IN_PROGRESS")))
+//      .asJson
+//      .check(status.is(200),
+//        jsonPath("$.status").is("BILLING_IN_PROGRESS": String))
 
 
   def prioritisePickerTask(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
@@ -105,17 +123,56 @@ object OrderProcessingActions extends BaseActions {
         jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
         jsonPath("$.aggregatePickerTask.taskCount").saveAs("aggregatePickerTaskCount"))
 
+  def aggregateUnAssignedPickerTasks(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+    http("UnAggregated Assigned Picker Task")
+      .delete(session => baseUrl + "/aggregatePickerTasks/assigned")
+      .header("Authorization", session => s"${getFromSession(session, "token")}")
+      .check(status.is(200),
+        jsonPath("$.message").is("success": String))
 
-  def pickTray(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+
+  def getAvailableTray(count: Integer, baseUrl: String = newConfigManager.getString("get_tray_url")): HttpRequestBuilder =
+    http("Get Available Tray for task")
+      .post(session => baseUrl)
+      .queryParam("trayCount", count).asJson
+      .check(status.is(200),
+        jsonPath("$.data..trayId").findAll.saveAs("trayIds"))
+
+  def pickIntermediateTray(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Pick Tray for task")
       .put(session => baseUrl + newConfigManager.getString("outward.pick_tray"))
       .header("Authorization", session => s"${getFromSession(session, "token")}")
       .body(StringBody(session => OrderPayloadCreation.getPickTrayPayload(s"${getFromSession(session, "trayId")}")))
       .asJson
       .check(status.is(200),
-        jsonPath("$.aggregatePickerTask.id").notNull.saveAs("aggregatedPickerTaskId"),
-        jsonPath("$.aggregatePickerTask.status").is("PICKED"),
-        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"))
+        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
+        jsonPath("$.aggregatePickerTask.pickedCount").saveAs("aggregatePickedCount"))
+
+  def pickLastTray(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+    http("Pick Tray for task")
+      .put(session => baseUrl + newConfigManager.getString("outward.pick_tray"))
+      .header("Authorization", session => s"${getFromSession(session, "token")}")
+      .body(StringBody(session => OrderPayloadCreation.getPickTrayPayload(s"${getFromSession(session, "tray")}")))
+      .asJson
+      .check(status.is(200),
+        jsonPath("$.aggregatePickerTask.id").saveAs("aggregatedPickerTaskId"),
+        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
+        jsonPath("$.aggregatePickerTask.pickedCount").saveAs("aggregatePickedCount"))
+
+  def pickTray(trayId: String): HttpRequestBuilder =
+    pickTray(trayId, newConfigManager.getString("outward.base_url"))
+
+  def pickTray(trayId: String, baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+    http("Pick Tray for task")
+      .put(session => baseUrl + newConfigManager.getString("outward.pick_tray"))
+      .header("Authorization", session => s"${getFromSession(session, "token")}")
+      .body(StringBody(OrderPayloadCreation.getPickTrayPayload(trayId)))
+      .asJson
+      .check(status.is(200),
+        // jsonPath("$.aggregatePickerTask.id").notNull.saveAs("`aggregatedPickerTaskId`"),
+        // jsonPath("$.aggregatePickerTask.status").is("PICKED"),
+        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
+        jsonPath("$.aggregatePickerTask.pickedCount").saveAs("aggregatePickedCount"))
 
 
   def aggregatePickerTaskPicked(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
@@ -127,10 +184,10 @@ object OrderProcessingActions extends BaseActions {
       .check(status.is(200),
         jsonPath("$.nextPickerTaskItem.ucode").notNull.saveAs("ucode"),
         jsonPath("$.nextPickerTaskItem.binId").notNull.saveAs("bin"),
-        jsonPath("$.nextPickerTaskItem.status").is("CREATED"))
-
-  //,
-  //    jsonPath("$.nextPickerTaskItem.pickerTaskId").notNull.saveAs("pickerTaskId"))
+        jsonPath("$.nextPickerTaskItem.orderedQuantity").notNull.saveAs("orderedQty"),
+        jsonPath("$.nextPickerTaskItem.trayId").notNull.saveAs("trayId"),
+        jsonPath("$.nextPickerTaskItem.pickerTaskId").saveAs("pickerTaskId"),
+        jsonPath("$.aggregatePickerTask.status").saveAs("aggregatePickerTaskStatus"))
 
   def searchInventoryPostTaskPicked(baseUrl: String = newConfigManager.getString("search_inventory_url")): HttpRequestBuilder =
     http("Search Inventory")
@@ -145,25 +202,42 @@ object OrderProcessingActions extends BaseActions {
         jsonPath("$.data[0].bin").is(session => s"${getFromSession(session, "bin")}"),
         jsonPath("$.data[0].batch").notNull)
 
-
   def getBarcodes(baseUrl: String = newConfigManager.getString("product_url")): HttpRequestBuilder =
     http("Get barcodes based on ucode and bin")
       .get(baseUrl)
       .queryParam("ucode", session => s"${getFromSession(session, "ucode")}")
       .queryParam("bin", session => s"${getFromSession(session, "bin")}")
-      .queryParam("size", "1")
+      .queryParam("size", session => s"${getFromSession(session, "orderedQty")}")
       .asJson
       .check(status.is(200),
-        jsonPath("$.data[*].barcode").findAll.saveAs("barcodes"), jsonPath("$.data[*].batch").findAll.saveAs("batch"))
+        jsonPath("$.data[*].barcode").findAll.saveAs("barcodeList"),
+        jsonPath("$.data[*].batch").findAll.saveAs("batch"))
 
 
   def pickedItems(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Picked Items")
       .patch(session => baseUrl + s"/pickerTasks/${getFromSession(session, "pickerTaskId")}/pickedItems")
-      .body(StringBody(session => OrderPayloadCreation.getPickedItemsPayload(s"${getFromSession(session, "bin")}", s"${getFromSession(session, "ucode")}", s"${getFromSession(session, "barcodes")}")))
+      .body(StringBody(session => OrderPayloadCreation.getPickedItemsPayload(s"${getFromSession(session, "bin")}",
+        s"${getFromSession(session, "ucode")}",
+        s"${getFromSession(session, "barcode")}")))
       .asJson
       .check(status.is(200),
         jsonPath("$.message").is("success"))
+
+  def completePickedItemsForIntermediateUcodes(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+    http("Complete Picked Items")
+      .put(session => baseUrl + s"/aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/completePickedItems")
+      .header("Authorization", session => getFromSession(session, "token"))
+      .body(StringBody(session => OrderPayloadCreation.getCompletePickedItemsPayload(s"${getFromSession(session, "bin")}",
+        s"${getFromSession(session, "ucode")}",
+        s"${getFromSession(session, "pickerTaskId")}")))
+      .asJson
+      .check(status.is(200),
+        jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
+        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
+        jsonPath("$.aggregatePickerTask.status").is("UCODE_PICKING"),
+        jsonPath("$.aggregatePickerTask.taskCount").is("1"),
+        jsonPath("$.aggregatePickerTask.pickerTaskZones").isNull)
 
   def completePickedItems(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Complete Picked Items")
@@ -176,22 +250,32 @@ object OrderProcessingActions extends BaseActions {
       .check(status.is(200),
         jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
         jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
-        jsonPath("$.aggregatePickerTask.status").is("ZONE_SCANNING"),
-        jsonPath("$.aggregatePickerTask.taskCount").is("1"),
-        jsonPath("$.aggregatePickerTask.pickerTaskZones[0].pickerTaskId").is(session => s"${getFromSession(session, "pickerTaskId")}"),
-        jsonPath("$.aggregatePickerTask.pickerTaskZones[0].status").is("PENDING_FOR_BILLING"))
+        jsonPath("$.aggregatePickerTask.status").saveAs("aggregatePickerTaskStatus"),
+        jsonPath("$.nextPickerTaskItem.ucode").notNull.saveAs("ucode"),
+        jsonPath("$.nextPickerTaskItem.binId").notNull.saveAs("bin"),
+        jsonPath("$.nextPickerTaskItem.orderedQuantity").notNull.saveAs("orderedQty"),
+        jsonPath("$.nextPickerTaskItem.pickerTaskId").notNull.saveAs("pickerTaskId"),
+        jsonPath("$.nextPickerTaskItem.trayId").notNull.saveAs("trayId"))
 
-  def scanZone(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
-    http("Scan Zone post completion of picking")
-      .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/scanZone")
-      .header("Authorization", session => getFromSession(session, "token"))
-      .body(StringBody(session => OrderPayloadCreation.getScanZonePayload(s"${getFromSession(session, "pickerTaskId")}")))
-      .asJson
-      .check(status.is(200),
-        jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
-        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
-        jsonPath("$.aggregatePickerTask.status").is("COMPLETED"),
-        jsonPath("$.aggregatePickerTask.taskCount").is("1"))
+    def scanZone(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+      http("Scan Zone post completion of picking")
+        .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/scanZone")
+        .header("Authorization", session => getFromSession(session, "token"))
+        .body(StringBody(session => OrderPayloadCreation.getScanZonePayload(s"${getFromSession(session, "pickerTaskId")}")))
+        .asJson
+        .check(status.is(200),
+          jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
+          jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"))
+
+//  def scanZone(pickerTaskId: String, baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+//    http("Scan Zone post completion of picking")
+//      .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/scanZone")
+//      .header("Authorization", session => getFromSession(session, "token"))
+//      .body(StringBody(OrderPayloadCreation.getScanZonePayload(pickerTaskId)))
+//      .asJson
+//      .check(status.is(200),
+//        jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
+//        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"))
 
   def generateStoreInvoice(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("generating Store invoice")
