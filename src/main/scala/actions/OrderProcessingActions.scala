@@ -65,7 +65,6 @@ object OrderProcessingActions extends BaseActions {
       .get(session => baseUrl + "/pickerTasks")
       .queryParam("referenceId", session => s"${getFromSession(session, "externalOrderId")}")
       .check(status.is(200),
-        jsonPath("$.elementsCount").is("1"),
         jsonPath("$.data[0].referenceId").is(session => getFromSession(session, "externalOrderId")),
         jsonPath("$.data[0].id").notNull.saveAs("pickerTaskId"),
         jsonPath("$.data[0].totalUcode").saveAs("totalUcodes"))
@@ -121,7 +120,8 @@ object OrderProcessingActions extends BaseActions {
       .header("Authorization", session => s"${getFromSession(session, "token")}")
       .check(status.is(200),
         jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
-        jsonPath("$.aggregatePickerTask.taskCount").saveAs("aggregatePickerTaskCount"))
+        jsonPath("$.aggregatePickerTask.taskCount").saveAs("aggregatePickerTaskCount"),
+        jsonPath("$.aggregatePickerTask").isNull)
 
   def aggregateUnAssignedPickerTasks(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("UnAggregated Assigned Picker Task")

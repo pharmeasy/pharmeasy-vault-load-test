@@ -78,28 +78,28 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
             .exec(prioritisePickerTask())
             .exitHereIfFailed
         })
-          .exec(configureMultiPicking(maxProcessCount))
+          .exec(configureMultiPicking(maxProcessCount)).exitHereIfFailed
           .exec(session => {
             val initialValue = 0
             session.set("aggregatePickedCount", initialValue).set("aggregatePickerTaskCount", initialValue)
           })
           .asLongAsDuring(session => !session("aggregatePickerTaskCount").as[String].equals(maxProcessCount.toString), (10 seconds)) {
-            exec(aggregateAssignedPickerTasks())
+            exec(aggregateAssignedPickerTasks()).exitHereIfFailed
           }
           // .repeat(maxProcessCount, "count") {
-          .exec(getAvailableTray(maxProcessCount))
+          .exec(getAvailableTray(maxProcessCount)).exitHereIfFailed
           .foreach("${trayIds}", "tray") {
             exec(session => {
               val tray = session("tray")
               session.set("trayId", tray)
             })
-              .exec(pickLastTray())
+              .exec(pickLastTray()).exitHereIfFailed
           }
           .doIf(session => !session("aggregatedPickerTaskId").asOption[String].isEmpty) {
-            exec(aggregatePickerTaskPicked())
+            exec(aggregatePickerTaskPicked()).exitHereIfFailed
           }
           .asLongAsDuring(session => !"ZONE_SCANNING".equals(session("aggregatePickerTaskStatus").as[String]), 10 second) {
-            exec(getBarcodes())
+            exec(getBarcodes()).exitHereIfFailed
               .foreach("${barcodeList}", "barcode") {
                 exec(sessionFunction = session => {
                   session.set("barcode", session("barcode").as[String])
@@ -108,6 +108,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
                   .exitHereIfFailed
               }
               .exec(completePickedItems())
+              .exitHereIfFailed
           }
           .repeat(maxProcessCount, "count") {
             exec(session => {
@@ -115,15 +116,19 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
               session.set("pickerTaskId", pickerTaskId)
             })
               .exec(scanZone())
+              .exitHereIfFailed
           }
+          .pause(500 millisecond)
           .repeat(maxProcessCount, "count") {
             exec(session => {
               val orderId = processOrders.remove(0)
               session.set("externalOrderId", orderId)
             })
               .exec(generateBill())
+              .exitHereIfFailed
           }
           .exec(aggregateUnAssignedPickerTasks())
+          .exitHereIfFailed
       })
 
 
