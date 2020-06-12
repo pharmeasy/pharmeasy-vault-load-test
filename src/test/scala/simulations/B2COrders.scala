@@ -18,14 +18,14 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
   private val random = scala.util.Random
   implicit val formats = DefaultFormats
   private val rampUpCreationUsers = getProperty("rampUpCreationUsers", "1").trim.toInt
-  private val rampUpUsers = getProperty("rampUpUsers", "2").trim.toInt
-  private val rampUpDuration = getProperty("rampUpDuration", "6").trim.toInt
+  private val rampUpUsers = getProperty("rampUpUsers", "4").trim.toInt
+  private val rampUpDuration = getProperty("rampUpDuration", "12").trim.toInt
   //private val rampUpCreationDuration = getProperty("rampUpCreationDuration", "10").trim.toInt
 
   private val DELIMITER = "::"
 
   private val fetchOrderDelayStartInSeconds = 3
-  private val maxProcessCount = 2
+  private val maxProcessCount = 3
   private val queue = new java.util.LinkedList[String]
   private val pickerTasks = new util.LinkedList[String]
   private val processOrders = new util.LinkedList[String]
@@ -78,8 +78,11 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
             pickerTasks.add(pickerId)
             session
           })
-          .exec(prioritisePickerTask())
-          .exitHereIfFailed
+          .exec(getPickerTaskPriority())
+          .exec(doIf(session=> !session("pickerTaskPriority").as[String].equals("P1")) {
+            exec(prioritisePickerTask())
+              .exitHereIfFailed
+          })
       })
         .exec(configureMultiPicking(maxProcessCount)).exitHereIfFailed
         .asLongAsDuring(session => !session("aggregatePickerTaskCount").as[String].equals(maxProcessCount.toString), (10 seconds)) {
@@ -120,6 +123,8 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
             .exitHereIfFailed
 
         }
+        .exec(aggregateUnAssignedPickerTasks())
+              .exitHereIfFailed
       //        .pause(500 millisecond)
       //        .repeat(maxProcessCount, "count") {
       //          exec(session => {
