@@ -19,7 +19,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
   implicit val formats = DefaultFormats
   private val rampUpCreationUsers = getProperty("rampUpCreationUsers", "1").trim.toInt
   private val rampUpUsers = getProperty("rampUpUsers", "2").trim.toInt
-  private val rampUpDuration = getProperty("rampUpDuration", "5").trim.toInt
+  private val rampUpDuration = getProperty("rampUpDuration", "6").trim.toInt
   //private val rampUpCreationDuration = getProperty("rampUpCreationDuration", "10").trim.toInt
 
   private val DELIMITER = "::"
@@ -65,7 +65,8 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
           val value = id.split(DELIMITER)
           processOrders.add(value(0))
           session.set("externalOrderId", value(0)).set("noOfUcodes", value(1).toInt).set("totalUcodes", 0)
-            .set("aggregatePickedCount", initialValue).set("aggregatePickerTaskCount", initialValue)
+            .set("aggregatePickedCount", initialValue).set("aggregatePickerTaskCount", initialValue).
+            set("aggregatedPickerTaskId","0")
         })
           .asLongAsDuring(session => session("noOfUcodes").as[Int] != session("totalUcodes").as[Int], (10 seconds)) {
             exec(getPickerTaskFromEpicenter())
@@ -92,7 +93,8 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
           })
             .exec(pickLastTray()).exitHereIfFailed
         }.pause(500 milliseconds)
-        .asLongAsDuring(session => !session("aggregatedPickerTaskId").asOption[String].isEmpty, 10 seconds) {
+        .asLongAsDuring(session => session("aggregatedPickerTaskId").as[Any] != null
+          || !session("aggregatedPickerTaskId").asOption[String].isEmpty, 10 seconds) {
           exec(aggregatePickerTaskPicked())
             .exitHereIfFailed
         }
@@ -110,25 +112,14 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
         }
         .exec(completePickedItemLater())
         .foreach("${pickerTaskIds}", "pIds") {
-            exec(scanZone())
+          exec(scanZone())
             .exitHereIfFailed
+            .exec(getOrderId())
+            .exitHereIfFailed
+            .exec(generateBill())
+            .exitHereIfFailed
+
         }
-
-
-//        .doIf(session => "ZONE_SCANNING".equals(session("aggregatePickerTaskStatus").as[String])) {
-//          exec(completePickedItemLater())
-//        }
-
-
-
-      //        .repeat(maxProcessCount, "count") {
-      //          exec(session => {
-      //            val pickerTaskId = pickerTasks.remove(0)
-      //            session.set("pickerTaskId", pickerTaskId)
-      //          })
-      //            .exec(scanZone())
-      //            .exitHereIfFailed
-      //        }
       //        .pause(500 millisecond)
       //        .repeat(maxProcessCount, "count") {
       //          exec(session => {
@@ -140,6 +131,22 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
       //        }
       //        .exec(aggregateUnAssignedPickerTasks())
       //        .exitHereIfFailed
+
+
+      //        .doIf(session => "ZONE_SCANNING".equals(session("aggregatePickerTaskStatus").as[String])) {
+      //          exec(completePickedItemLater())
+      //        }
+
+
+      //        .repeat(maxProcessCount, "count") {
+      //          exec(session => {
+      //            val pickerTaskId = pickerTasks.remove(0)
+      //            session.set("pickerTaskId", pickerTaskId)
+      //          })
+      //            .exec(scanZone())
+      //            .exitHereIfFailed
+      //        }
+
     }
 
     )
