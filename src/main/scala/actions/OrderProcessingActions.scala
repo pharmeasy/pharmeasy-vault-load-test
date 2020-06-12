@@ -1,10 +1,6 @@
 package actions
 
-import java.util.concurrent.ScheduledThreadPoolExecutor
-
-import scm.OrderPayloadCreation
-import scm.CreateB2BOrderPayload
-import scm.CreateGenerateBillPayload
+import actions.scm.{CreateB2BOrderPayload, CreateGenerateBillPayload, OrderPayloadCreation}
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.http.request.builder.HttpRequestBuilder
@@ -121,7 +117,7 @@ object OrderProcessingActions extends BaseActions {
       .check(status.is(200),
         jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
         jsonPath("$.aggregatePickerTask.taskCount").saveAs("aggregatePickerTaskCount"),
-        jsonPath("$.aggregatePickerTask").isNull)
+        jsonPath("$.aggregatePickerTask.status").isNull)
 
   def aggregateUnAssignedPickerTasks(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("UnAggregated Assigned Picker Task")
@@ -257,11 +253,24 @@ object OrderProcessingActions extends BaseActions {
         jsonPath("$.nextPickerTaskItem.pickerTaskId").notNull.saveAs("pickerTaskId"),
         jsonPath("$.nextPickerTaskItem.trayId").notNull.saveAs("trayId"))
 
-    def scanZone(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+  def completePickedItemLater(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
+    http("Complete Picked Item Later")
+      .put(session => baseUrl + s"/aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/completePickedItems")
+      .header("Authorization", session => getFromSession(session, "token"))
+      .body(StringBody(session => OrderPayloadCreation.getCompletePickedItemsPayload(s"${getFromSession(session, "bin")}",
+        s"${getFromSession(session, "ucode")}",
+        s"${getFromSession(session, "pickerTaskId")}")))
+      .asJson
+      .check(status.is(200),
+        jsonPath("$.aggregatePickerTask.pickerTaskZones[*].pickerTaskId").findAll.saveAs("pickerTaskIds"),
+      )
+
+
+  def scanZone(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
       http("Scan Zone post completion of picking")
         .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/scanZone")
         .header("Authorization", session => getFromSession(session, "token"))
-        .body(StringBody(session => OrderPayloadCreation.getScanZonePayload(s"${getFromSession(session, "pickerTaskId")}")))
+        .body(StringBody(session => OrderPayloadCreation.getScanZonePayload(s"${getFromSession(session, "pIds")}")))
         .asJson
         .check(status.is(200),
           jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),

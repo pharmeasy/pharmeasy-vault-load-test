@@ -57,79 +57,92 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
   val processB2COrders = scenario("Process B2C Order")
     .feed(OrderPayloadCreation.getPickerListFeeder())
     .pause(fetchOrderDelayStartInSeconds second)
-    .exec(doIf(session=> !queue.isEmpty) {
-        exec(repeat(maxProcessCount, "count") {
-          exec(session => {
-            val id = queue.remove(0)
-            val value = id.split(DELIMITER)
-            processOrders.add(value(0))
-            session.set("externalOrderId", value(0)).set("noOfUcodes", value(1).toInt).set("totalUcodes", 0)
-          })
-            .asLongAsDuring(session => !session("noOfUcodes").as[Int].equals(session("totalUcodes").as[Int]), (10 seconds)) {
-              exec(getPickerTaskFromEpicenter())
-            }.exitHereIfFailed
-            .exec(session => {
-              val pickerId = session("pickerTaskId").as[String].trim
-              println("Picker Task Id  "+pickerId)
-              println("Sessions "+session)
-              pickerTasks.add(pickerId)
-              session
-            })
-            .exec(prioritisePickerTask())
-            .exitHereIfFailed
+    .exec(doWhile(session => !queue.isEmpty && queue.size() >= maxProcessCount) {
+      exec(repeat(maxProcessCount, "count") {
+        exec(session => {
+          val id = queue.remove(0)
+          val initialValue = 0
+          val value = id.split(DELIMITER)
+          processOrders.add(value(0))
+          session.set("externalOrderId", value(0)).set("noOfUcodes", value(1).toInt).set("totalUcodes", 0)
+            .set("aggregatePickedCount", initialValue).set("aggregatePickerTaskCount", initialValue)
         })
-          .exec(configureMultiPicking(maxProcessCount)).exitHereIfFailed
+          .asLongAsDuring(session => session("noOfUcodes").as[Int] != session("totalUcodes").as[Int], (10 seconds)) {
+            exec(getPickerTaskFromEpicenter())
+          }.exitHereIfFailed
           .exec(session => {
-            val initialValue = 0
-            session.set("aggregatePickedCount", initialValue).set("aggregatePickerTaskCount", initialValue)
+            val pickerId = session("pickerTaskId").as[String].trim
+            println("Picker Task Id  " + pickerId)
+            println("Sessions " + session)
+            pickerTasks.add(pickerId)
+            session
           })
-          .asLongAsDuring(session => !session("aggregatePickerTaskCount").as[String].equals(maxProcessCount.toString), (10 seconds)) {
-            exec(aggregateAssignedPickerTasks()).exitHereIfFailed
-          }
-          // .repeat(maxProcessCount, "count") {
-          .exec(getAvailableTray(maxProcessCount)).exitHereIfFailed
-          .foreach("${trayIds}", "tray") {
-            exec(session => {
-              val tray = session("tray")
-              session.set("trayId", tray)
-            })
-              .exec(pickLastTray()).exitHereIfFailed
-          }
-          .doIf(session => !session("aggregatedPickerTaskId").asOption[String].isEmpty) {
-            exec(aggregatePickerTaskPicked()).exitHereIfFailed
-          }
-          .asLongAsDuring(session => !"ZONE_SCANNING".equals(session("aggregatePickerTaskStatus").as[String]), 10 second) {
-            exec(getBarcodes()).exitHereIfFailed
-              .foreach("${barcodeList}", "barcode") {
-                exec(sessionFunction = session => {
-                  session.set("barcode", session("barcode").as[String])
-                })
-                  .exec(pickedItems())
-                  .exitHereIfFailed
-              }
-              .exec(completePickedItems())
-              .exitHereIfFailed
-          }
-          .repeat(maxProcessCount, "count") {
-            exec(session => {
-              val pickerTaskId = pickerTasks.remove(0)
-              session.set("pickerTaskId", pickerTaskId)
-            })
-              .exec(scanZone())
-              .exitHereIfFailed
-          }
-          .pause(500 millisecond)
-          .repeat(maxProcessCount, "count") {
-            exec(session => {
-              val orderId = processOrders.remove(0)
-              session.set("externalOrderId", orderId)
-            })
-              .exec(generateBill())
-              .exitHereIfFailed
-          }
-          .exec(aggregateUnAssignedPickerTasks())
+          .exec(prioritisePickerTask())
           .exitHereIfFailed
       })
+        .exec(configureMultiPicking(maxProcessCount)).exitHereIfFailed
+        .asLongAsDuring(session => !session("aggregatePickerTaskCount").as[String].equals(maxProcessCount.toString), (10 seconds)) {
+          exec(aggregateAssignedPickerTasks()).exitHereIfFailed
+        }
+        .exec(getAvailableTray(maxProcessCount)).exitHereIfFailed
+        .foreach("${trayIds}", "tray") {
+          exec(session => {
+            val tray = session("tray")
+            session.set("trayId", tray)
+          })
+            .exec(pickLastTray()).exitHereIfFailed
+        }.pause(500 milliseconds)
+        .asLongAsDuring(session => !session("aggregatedPickerTaskId").asOption[String].isEmpty, 10 seconds) {
+          exec(aggregatePickerTaskPicked())
+            .exitHereIfFailed
+        }
+        .asLongAsDuring(session => !"ZONE_SCANNING".equals(session("aggregatePickerTaskStatus").as[String]), 10 second) {
+          exec(getBarcodes()).exitHereIfFailed
+            .foreach("${barcodeList}", "barcode") {
+              exec(sessionFunction = session => {
+                session.set("barcode", session("barcode").as[String])
+              })
+                .exec(pickedItems())
+                .exitHereIfFailed
+            }
+            .exec(completePickedItems())
+            .exitHereIfFailed
+        }
+        .exec(completePickedItemLater())
+        .foreach("${pickerTaskIds}", "pIds") {
+            exec(scanZone())
+            .exitHereIfFailed
+        }
+
+
+//        .doIf(session => "ZONE_SCANNING".equals(session("aggregatePickerTaskStatus").as[String])) {
+//          exec(completePickedItemLater())
+//        }
+
+
+
+      //        .repeat(maxProcessCount, "count") {
+      //          exec(session => {
+      //            val pickerTaskId = pickerTasks.remove(0)
+      //            session.set("pickerTaskId", pickerTaskId)
+      //          })
+      //            .exec(scanZone())
+      //            .exitHereIfFailed
+      //        }
+      //        .pause(500 millisecond)
+      //        .repeat(maxProcessCount, "count") {
+      //          exec(session => {
+      //            val orderId = processOrders.remove(0)
+      //            session.set("externalOrderId", orderId)
+      //          })
+      //            .exec(generateBill())
+      //            .exitHereIfFailed
+      //        }
+      //        .exec(aggregateUnAssignedPickerTasks())
+      //        .exitHereIfFailed
+    }
+
+    )
 
 
   setUp(

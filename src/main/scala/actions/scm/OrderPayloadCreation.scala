@@ -1,11 +1,10 @@
 package actions.scm
 
 
+import newUtilities.newUtilities._
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
-import newUtilities.newUtilities._
 
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 object OrderPayloadCreation {
@@ -26,7 +25,7 @@ object OrderPayloadCreation {
     val ucodeCnt=randomNumberBetweenRange(1,noOfUcodes)
     var items = List[Item]()
     for(i<- 0 to ucodeCnt-1) {
-      val qty = randomNumberBetweenRange(1, noOfQty)
+      val qty = 1
       val data = shuffled(i);
       val item = Item(77, data(0), data(1), qty)
       items = item :: items
@@ -186,13 +185,13 @@ object OrderPayloadCreation {
 
 
   def getPickerTaskZonePayload(aggregatePickerTaskId: String): PickerTaskZones = {
-    val pickerTaskZone = PickerTaskZones(aggregatePickerTaskId.toLong, null, "COMPLETED", null)
+    val pickerTaskZone = PickerTaskZones(aggregatePickerTaskId, null, "COMPLETED", null)
     return write(pickerTaskZone).asInstanceOf[PickerTaskZones]
   }
 
   def getScanZonePayload(aggregatePickerTaskId: String): String = {
     val scanZones = ArrayBuffer[PickerTaskZones]()
-    scanZones += PickerTaskZones(aggregatePickerTaskId.toLong, null, "COMPLETED", null)
+    scanZones += PickerTaskZones(aggregatePickerTaskId, null, "COMPLETED", null)
     return write(ScanZonePayload(scanZones))
   }
 
