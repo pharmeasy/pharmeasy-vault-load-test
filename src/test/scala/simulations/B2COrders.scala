@@ -8,7 +8,7 @@ import actions.OrderProcessingActions._
 import actions.scm.OrderPayloadCreation
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
-import newUtilities.TokenGeneration
+import newUtilities.{TokenGeneration, newConfigManager}
 import org.json4s.DefaultFormats
 
 import scala.concurrent.duration._
@@ -20,17 +20,17 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
   private val rampUpCreationUsers = getProperty("rampUpCreationUsers", "1").trim.toInt
   private val rampUpUsers = getProperty("rampUpUsers", "3").trim.toInt
   private val rampUpDuration = getProperty("rampUpDuration", "15").trim.toInt
-  //private val rampUpCreationDuration = getProperty("rampUpCreationDuration", "10").trim.toInt
+  private val maxProcessCount = getProperty("maxOrdersProcessCount", "5").trim.toInt
 
   private val DELIMITER = "::"
 
   private val fetchOrderDelayStartInSeconds = 3
-  private val maxProcessCount = 5
+
   private val queue = new java.util.LinkedList[String]
   private val pickerTasks = new util.LinkedList[String]
   private val processOrders = new util.LinkedList[String]
 
-  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl("https://staging.thea.gomercury.in")
+  private val httpProtocol: io.gatling.http.protocol.HttpProtocolBuilder = http.baseUrl(newConfigManager.getString("outward.create_order"))
     .acceptHeader("application/json")
     .contentTypeHeader("application/json")
     .authorizationHeader(TokenGeneration.getDefaultToken())

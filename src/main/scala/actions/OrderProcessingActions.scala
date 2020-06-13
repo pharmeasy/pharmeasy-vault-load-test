@@ -18,7 +18,7 @@ object OrderProcessingActions extends BaseActions {
       .check(
         status.is(200))
 
-  def generateB2COrders(baseUrl: String = getString("outward.create_order"), thea: String = getString("outward.thea")) =
+  def generateB2COrders(baseUrl: String = newConfigManager.getString("outward.create_order"), thea: String = getString("outward.thea")) =
     http("Create B2C Order")
       .post(session => baseUrl + "/api/outward/orders")
       .body(StringBody(OrderPayloadCreation.getOrderPayload()))
@@ -28,7 +28,7 @@ object OrderProcessingActions extends BaseActions {
         jsonPath("$.items[*].ucode").findAll.saveAs("orderedItems"))
 
 
-  def fetchOrderId(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
+  def fetchOrderId(baseUrl: String = newConfigManager.getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("Fetch Order Id")
       .get(session => baseUrl + s"/omsOrder/customerOrder/${getFromSession(session, "customerId", "")}")
       .asJson
