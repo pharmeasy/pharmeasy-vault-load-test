@@ -18,14 +18,14 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
   private val random = scala.util.Random
   implicit val formats = DefaultFormats
   private val rampUpCreationUsers = getProperty("rampUpCreationUsers", "1").trim.toInt
-  private val rampUpUsers = getProperty("rampUpUsers", "4").trim.toInt
-  private val rampUpDuration = getProperty("rampUpDuration", "12").trim.toInt
+  private val rampUpUsers = getProperty("rampUpUsers", "3").trim.toInt
+  private val rampUpDuration = getProperty("rampUpDuration", "15").trim.toInt
   //private val rampUpCreationDuration = getProperty("rampUpCreationDuration", "10").trim.toInt
 
   private val DELIMITER = "::"
 
   private val fetchOrderDelayStartInSeconds = 3
-  private val maxProcessCount = 3
+  private val maxProcessCount = 5
   private val queue = new java.util.LinkedList[String]
   private val pickerTasks = new util.LinkedList[String]
   private val processOrders = new util.LinkedList[String]
