@@ -14,7 +14,7 @@
             <pattern>%logger{35} - %msg%n</pattern>
         </encoder>
     </appender>
-   <logger name="io.gatling.http.engine.response" level="TRACE" />
+   <logger name="io.gatling.http.engine.response" level="DEBUG" />
 
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
