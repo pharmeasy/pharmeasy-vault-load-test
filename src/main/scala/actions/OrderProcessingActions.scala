@@ -30,7 +30,7 @@ object OrderProcessingActions extends BaseActions {
 
   def fetchOrderId(baseUrl: String = newConfigManager.getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("Fetch Order Id")
-      .get(session => baseUrl + s"/omsOrder/customerOrder/${getFromSession(session, "customerId", "")}")
+      .get(session => baseUrl + s"omsOrder/customerOrder/${getFromSession(session, "customerId", "")}")
       .asJson
       .check(
         status.is(200),
@@ -58,7 +58,7 @@ object OrderProcessingActions extends BaseActions {
 
   def getPickerTaskFromEpicenter(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Get picker task from epicenter")
-      .get(session => baseUrl + "/pickerTasks")
+      .get(session => baseUrl + "pickerTasks")
       .queryParam("referenceId", session => s"${getFromSession(session, "externalOrderId")}")
       .check(status.is(200),
         jsonPath("$.data[0].referenceId").is(session => getFromSession(session, "externalOrderId")),
@@ -67,13 +67,13 @@ object OrderProcessingActions extends BaseActions {
 
   def getPickerTaskPriority(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Get picker task from epicenter")
-      .get(session => baseUrl + s"/pickerTasks/${getFromSession(session,"pickerTaskId")}")
+      .get(session => baseUrl + s"pickerTasks/${getFromSession(session,"pickerTaskId")}")
       .check(status.is(200),
         jsonPath("$.priority").notNull.saveAs("pickerTaskPriority"))
 
   def generateBill(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Change the status of external order id to BILLING  IN PROGRESS")
-      .put(session => baseUrl + s"/orders/${getFromSession(session, "orderId")}/status")
+      .put(session => baseUrl + s"orders/${getFromSession(session, "orderId")}/status")
       .body(StringBody(session => OrderPayloadCreation.getGenerateBillPayload("BILLING_IN_PROGRESS")))
       .asJson
       .check(status.is(200),
@@ -90,7 +90,7 @@ object OrderProcessingActions extends BaseActions {
 
   def prioritisePickerTask(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Prioritise the picker task")
-      .put(session => baseUrl + s"/pickerTasks/${getFromSession(session, "pickerTaskId")}/prioritise")
+      .put(session => baseUrl + s"pickerTasks/${getFromSession(session, "pickerTaskId")}/prioritise")
       .body(StringBody(session => OrderPayloadCreation.getPrioritisePickerTaskConfig(s"${getFromSession(session, "externalOrderId")}")))
       .asJson
       .check(status.is(200),
@@ -118,7 +118,7 @@ object OrderProcessingActions extends BaseActions {
 
   def aggregateAssignedPickerTasks(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Get Aggregated Assigned Picker Task")
-      .get(session => baseUrl + "/aggregatePickerTasks/assigned")
+      .get(session => baseUrl + "aggregatePickerTasks/assigned")
       .header("Authorization", session => s"${getFromSession(session, "token")}")
       .check(status.is(200),
         jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
@@ -127,7 +127,7 @@ object OrderProcessingActions extends BaseActions {
 
   def aggregateUnAssignedPickerTasks(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("UnAggregated Assigned Picker Task")
-      .delete(session => baseUrl + "/aggregatePickerTasks/assigned")
+      .delete(session => baseUrl + "aggregatePickerTasks/assigned")
       .header("Authorization", session => s"${getFromSession(session, "token")}")
       .check(status.is(200),
         jsonPath("$.message").is("success": String))
@@ -179,7 +179,7 @@ object OrderProcessingActions extends BaseActions {
 
   def aggregatePickerTaskPicked(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Aggrgate Picker Task Picked")
-      .put(session => baseUrl + s"/aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/picked")
+      .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/picked")
       .header("Authorization", session => s"${getFromSession(session, "token")}")
       .body(StringBody(OrderPayloadCreation.getTaskPickedPayload()))
       .asJson
@@ -218,7 +218,7 @@ object OrderProcessingActions extends BaseActions {
 
   def pickedItems(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Picked Items")
-      .patch(session => baseUrl + s"/pickerTasks/${getFromSession(session, "pickerTaskId")}/pickedItems")
+      .patch(session => baseUrl + s"pickerTasks/${getFromSession(session, "pickerTaskId")}/pickedItems")
       .body(StringBody(session => OrderPayloadCreation.getPickedItemsPayload(s"${getFromSession(session, "bin")}",
         s"${getFromSession(session, "ucode")}",
         s"${getFromSession(session, "barcode")}")))
@@ -228,7 +228,7 @@ object OrderProcessingActions extends BaseActions {
 
   def completePickedItemsForIntermediateUcodes(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Complete Picked Items")
-      .put(session => baseUrl + s"/aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/completePickedItems")
+      .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/completePickedItems")
       .header("Authorization", session => getFromSession(session, "token"))
       .body(StringBody(session => OrderPayloadCreation.getCompletePickedItemsPayload(s"${getFromSession(session, "bin")}",
         s"${getFromSession(session, "ucode")}",
@@ -243,7 +243,7 @@ object OrderProcessingActions extends BaseActions {
 
   def completePickedItems(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Complete Picked Items")
-      .put(session => baseUrl + s"/aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/completePickedItems")
+      .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/completePickedItems")
       .header("Authorization", session => getFromSession(session, "token"))
       .body(StringBody(session => OrderPayloadCreation.getCompletePickedItemsPayload(s"${getFromSession(session, "bin")}",
         s"${getFromSession(session, "ucode")}",
@@ -261,7 +261,7 @@ object OrderProcessingActions extends BaseActions {
 
   def completePickedItemLater(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Complete Picked Item Later")
-      .put(session => baseUrl + s"/aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/completePickedItems")
+      .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/completePickedItems")
       .header("Authorization", session => getFromSession(session, "token"))
       .body(StringBody(session => OrderPayloadCreation.getCompletePickedItemsPayload(s"${getFromSession(session, "bin")}",
         s"${getFromSession(session, "ucode")}",
@@ -303,7 +303,7 @@ object OrderProcessingActions extends BaseActions {
 
   def generateStoreInvoice(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("generating Store invoice")
-      .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/status/storeInvoice")
+      .put(session => baseUrl + s"orders/${getFromSession(session, "externalOrderId", "")}/status/storeInvoice")
       .header("Authorization", session => s"${getFromSession(session, "biller_token")}")
       .body(StringBody(CreateGenerateBillPayload.getInvoicePayload("STORE_INVOICE_GENERATED")))
       .asJson
@@ -316,7 +316,7 @@ object OrderProcessingActions extends BaseActions {
 
   def generateDispatchNote(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("generating Dispatch Note")
-      .get(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/customer/dispatchNote")
+      .get(session => baseUrl + s"orders/${getFromSession(session, "externalOrderId", "")}/customer/dispatchNote")
       .header("Authorization", session => s"${getFromSession(session, "biller_token")}")
       .asJson
       .check(
@@ -327,7 +327,7 @@ object OrderProcessingActions extends BaseActions {
 
   def recievedAtStore(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("updating the order status to 'Recieved At Store'")
-      .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/status")
+      .put(session => baseUrl + s"orders/${getFromSession(session, "externalOrderId", "")}/status")
       .header("Authorization", session => s"${getFromSession(session, "biller_token")}")
       .body(StringBody(CreateGenerateBillPayload.setOrderStatus("RECEIVED_AT_STORE")))
       .asJson
@@ -340,7 +340,7 @@ object OrderProcessingActions extends BaseActions {
 
   def generateCustomerInvoice(baseUrl: String = getString("outward.base_url"), storeId: String = getString("outward.storeId"), thea: String = getString("outward.thea")) =
     http("generating Customer invoice")
-      .put(session => baseUrl + s"/orders/${getFromSession(session, "externalOrderId", "")}/status/customerInvoice?storeId=" + storeId)
+      .put(session => baseUrl + s"orders/${getFromSession(session, "externalOrderId", "")}/status/customerInvoice?storeId=" + storeId)
       .header("Authorization", session => s"${getFromSession(session, "biller_token")}")
       .body(StringBody(CreateGenerateBillPayload.getInvoicePayload("CUSTOMER_INVOICE_GENERATED")))
       .asJson
