@@ -1,0 +1,16 @@
+{
+	"jwt": {
+		"secret_key": "mercury@2018"
+	},
+	"pickingEnabled" : true,
+	"binScan" :false,
+	"multiPicking" : true,
+	"promotionalPicking" :true,
+	"ucodeBatchV0" :true,
+    "ucodeBatchV1"	 : true,
+    "orderPrioritisation" : true,
+    "th014.addressId" :253329 ,
+    "cookie" : "SL_C_23361dd035530_KEY=b1b7178b8526fe0199f32e928288029afe35278a; X-App-Version=1.0; X-Phone-Platform=web; X-Default-City=1; X-Pincode=391331; _ga=GA1.2.1478228750.1572333062; _gcl_au=1.1.1816945524.1572333062; XdI=05b897b4db04c68077e214d1f824bfff; WZRK_G=92e1b8fb0fca406eac22a58cf9af09bc; _omappvp=8Hm1doyoia5EUX3oDXhMtylzJ4sXTsF8CJVku2FX1XhwbZfB3YbsO4dfhJj0TWmA7ynlnughzbytowcuA47AJjto0WNRV18u; cto_lwid=349cd9ce-cca8-40a3-951f-f8d07ce42311; _fbp=fb.1.1572333063657.866530702; _gid=GA1.2.1882447742.1574150413; X-Access-Token=9AYhkeZ4FZki37GP31Nu0DzI9RcTnxBS; XCID=307797; mp_9ce8b1f91073a1e7ebe2d3f1509ae17a_mixpanel=%7B%22distinct_id%22%3A%20%2216e165a89fd423-0c4399e79bd4f7-38677b00-13c680-16e165a89fecc1%22%2C%22%24device_id%22%3A%20%2216e165a89fd423-0c4399e79bd4f7-38677b00-13c680-16e165a89fecc1%22%2C%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%7D; WZRK_S_TEST-K9Z-WWR-854Z=%7B%22p%22%3A1%2C%22s%22%3A1574169093%2C%22t%22%3A1574169284%7D",
+    "catalog_auth":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJzYWx0Ijo5NDkxMDV9.VZxttcF05fRmTTxzxVY5DjH9sCZh7QPPkSp12IEO7fo",
+    "store_id": "e05f8ec7-161a-4d38-8f29-93ac7e5e0e28"
+}

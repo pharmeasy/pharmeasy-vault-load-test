@@ -1,0 +1,121 @@
+{
+	"prod": {
+		"database": {
+			"driver-class":"com.mysql.cj.jdbc.Driver",
+      "jdbc-url":"jdbc:mysql://mercury-prod-replica.crbaj2am3zwb.ap-south-1.rds.amazonaws.com:3306",
+      "username":"akansha.gaonkar",
+      "password":"Q0eNFtDALezN3A"
+		},
+		"mercury": {
+			"driver-class":"com.mysql.cj.jdbc.Driver",
+      "jdbc-url":"jdbc:mysql://mercury-prod-replica.crbaj2am3zwb.ap-south-1.rds.amazonaws.com:3306/mercury",
+      "username":"akansha.gaonkar",
+      "password":"Q0eNFtDALezN3A"
+		},
+		"partner": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.20:3306/partner",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		}
+	},"qa": {
+		"database": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.20:3306",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		},
+		"mercury": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.20:3306/mercury",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		},
+		"partner": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.20:3306/partner",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		}
+	},
+	"qa2": {
+		"database": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.22:3306",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		},
+		"mercury": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.22:3306/mercury",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		},
+		"partner": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.22:3306/partner",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		}
+	},
+	"stage": {
+		"database": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.30:3306",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		},
+		"mercury": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.30:3306/mercury",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		},
+		"partner": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.80.20.30:3306/partner",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		}
+	},"qa_gometal": {
+		"database": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.150.0.41:3306",
+			"username": "app",
+			"password": "qa@RxFgYE7jP8ZA2Mzt"
+		},
+		"mercury": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.150.0.41:3306/mercury",
+			"username": "app",
+			"password": "qa@RxFgYE7jP8ZA2Mzt"
+		},
+		"partner": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.150.0.41:3306/partner",
+			"username": "app",
+			"password": "qa@RxFgYE7jP8ZA2Mzt"
+		}
+ 	},"qa3_gometal": {
+		"database": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.150.0.160:3306",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		},
+		"mercury": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.150.0.160:3306/mercury",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		},
+		"partner": {
+			"driver-class": "com.mysql.cj.jdbc.Driver",
+			"jdbc-url": "jdbc:mysql://10.150.0.160:3306/partner",
+			"username": "qa",
+			"password": "JrF32FFTMxHGpxRV"
+		}
+ 	}
+}
+
+
