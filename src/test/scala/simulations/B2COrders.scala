@@ -17,14 +17,14 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
 
   private val random = scala.util.Random
   implicit val formats = DefaultFormats
-  private val rampUpCreationUsers = getProperty("rampUpCreationUsers", "1").trim.toInt
-  private val rampUpUsers = getProperty("rampUpUsers", "3").trim.toInt
+  private val rampUpCreationUsers = getProperty("rampUpCreationUsers", "4").trim.toInt
+  private val rampUpUsers = getProperty("rampUpUsers", "10").trim.toInt
   private val rampUpDuration = getProperty("rampUpDuration", "15").trim.toInt
   private val maxProcessCount = getProperty("maxOrdersProcessCount", "5").trim.toInt
 
   private val DELIMITER = "::"
 
-  private val fetchOrderDelayStartInSeconds = 3
+  private val fetchOrderDelayStartInSeconds = 5
 
   private val queue = new java.util.LinkedList[String]
   private val pickerTasks = new util.LinkedList[String]
@@ -89,6 +89,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
           exec(aggregateAssignedPickerTasks()).exitHereIfFailed
         }
         .exec(getAvailableTray(maxProcessCount)).exitHereIfFailed
+        .pause(500 milliseconds)
         .foreach("${trayIds}", "tray") {
           exec(session => {
             val tray = session("tray")
