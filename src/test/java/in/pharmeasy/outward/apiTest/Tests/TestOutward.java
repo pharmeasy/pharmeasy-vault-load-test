@@ -38,7 +38,7 @@ public class TestOutward {
 	public void unAssign() throws IOException {
 		List<HashMap<String, Object>> pickerDataList = new ArrayList<HashMap<String, Object>>();
 		List<String[]> uploadLines = new ArrayList<>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 10; i++) {
 			HashMap<String, Object> pickerData = util.login();
 			util.deleteAssignedPickerTask((String) pickerData.get("pickerAppToken"));
 			pickerDataList.add(pickerData);

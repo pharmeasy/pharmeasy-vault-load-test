@@ -115,7 +115,26 @@
 			"username": "qa",
 			"password": "JrF32FFTMxHGpxRV"
 		}
- 	}
+ 	},"load": {
+	"database": {
+		"driver-class": "com.mysql.cj.jdbc.Driver",
+		"jdbc-url": "jdbc:mysql://10.80.20.25:3306",
+		"username": "app",
+		"password": "qa@RxFgYE7jP8ZA2Mzt"
+	},
+	"mercury": {
+		"driver-class": "com.mysql.cj.jdbc.Driver",
+		"jdbc-url": "jdbc:mysql://10.80.20.25:3306/mercury",
+		"username": "app",
+		"password": "qa@RxFgYE7jP8ZA2Mzt"
+	},
+	"partner": {
+		"driver-class": "com.mysql.cj.jdbc.Driver",
+		"jdbc-url": "jdbc:mysql://10.80.20.25:3306/partner",
+		"username": "app",
+		"password": "qa@RxFgYE7jP8ZA2Mzt"
+	}
+}
 }
 
 
