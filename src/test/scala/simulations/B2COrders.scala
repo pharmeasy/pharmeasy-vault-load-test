@@ -19,7 +19,7 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
   implicit val formats = DefaultFormats
   private val rampUpCreationUsers = getProperty("rampUpCreationUsers", "1").trim.toInt
   private val rampUpUsers = getProperty("rampUpUsers", "1").trim.toInt
-  private val rampUpDuration = getProperty("rampUpDuration", "5").trim.toInt minutes
+  private val rampUpDuration = getProperty("rampUpDuration", "5").trim.toInt
   private val maxProcessCount = getProperty("maxOrdersProcessCount", "5").trim.toInt
 
   private val DELIMITER = "::"
