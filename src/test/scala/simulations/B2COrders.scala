@@ -126,32 +126,6 @@ class B2COrders extends io.gatling.core.Predef.Simulation {
         }
         .exec(aggregateUnAssignedPickerTasks())
               .exitHereIfFailed
-      //        .pause(500 millisecond)
-      //        .repeat(maxProcessCount, "count") {
-      //          exec(session => {
-      //            val orderId = processOrders.remove(0)
-      //            session.set("externalOrderId", orderId)
-      //          })
-      //            .exec(generateBill())
-      //            .exitHereIfFailed
-      //        }
-      //        .exec(aggregateUnAssignedPickerTasks())
-      //        .exitHereIfFailed
-
-
-      //        .doIf(session => "ZONE_SCANNING".equals(session("aggregatePickerTaskStatus").as[String])) {
-      //          exec(completePickedItemLater())
-      //        }
-
-
-      //        .repeat(maxProcessCount, "count") {
-      //          exec(session => {
-      //            val pickerTaskId = pickerTasks.remove(0)
-      //            session.set("pickerTaskId", pickerTaskId)
-      //          })
-      //            .exec(scanZone())
-      //            .exitHereIfFailed
-      //        }
 
     }
 

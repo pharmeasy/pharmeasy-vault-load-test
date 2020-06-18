@@ -38,7 +38,7 @@ public class TestOutward {
 	public void unAssign() throws IOException {
 		List<HashMap<String, Object>> pickerDataList = new ArrayList<HashMap<String, Object>>();
 		List<String[]> uploadLines = new ArrayList<>();
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 20; i++) {
 			HashMap<String, Object> pickerData = util.login();
 			util.deleteAssignedPickerTask((String) pickerData.get("pickerAppToken"));
 			pickerDataList.add(pickerData);
@@ -53,6 +53,23 @@ public class TestOutward {
 			uploadLines.add(newLine);
 		}
 		CSVUtils.writeAll(Constants.ALL_PICKER__FILE_NAME, uploadLines);
+
+	}
+
+	@Test
+	public void unAssignFromCSV() throws IOException {
+		List<String[]> testData = CSVUtils.readAll(Constants.ALL_PICKER__FILE_NAME);
+		List<String> csvInvoices = new ArrayList<String>();
+		List<String> invoices = new ArrayList<String>();
+		for (int i = 1; i < testData.size(); i++) {
+			if (testData.get(i).length > 0) {
+				String[] data = testData.get(i);
+				csvInvoices.add(data[0]);
+			}
+		}
+		for (String invoice : csvInvoices) {
+			util.deleteAssignedPickerTask(invoice);
+		}
 
 	}
 }

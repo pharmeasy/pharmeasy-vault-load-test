@@ -79,14 +79,6 @@ object OrderProcessingActions extends BaseActions {
       .check(status.is(200),
         jsonPath("$.status").is("BILLING_IN_PROGRESS": String))
 
-  //  def generateBill(orderId: String, baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
-  //    http("Change the status of external order id to BILLING  IN PROGRESS")
-  //      .put(baseUrl + s"/orders/" + orderId + "/status")
-  //      .body(StringBody(session => OrderPayloadCreation.getGenerateBillPayload("BILLING_IN_PROGRESS")))
-  //      .asJson
-  //      .check(status.is(200),
-  //        jsonPath("$.status").is("BILLING_IN_PROGRESS": String))
-
 
   def prioritisePickerTask(baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
     http("Prioritise the picker task")
@@ -171,8 +163,6 @@ object OrderProcessingActions extends BaseActions {
       .body(StringBody(OrderPayloadCreation.getPickTrayPayload(trayId)))
       .asJson
       .check(status.is(200),
-        // jsonPath("$.aggregatePickerTask.id").notNull.saveAs("`aggregatedPickerTaskId`"),
-        // jsonPath("$.aggregatePickerTask.status").is("PICKED"),
         jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"),
         jsonPath("$.aggregatePickerTask.pickedCount").saveAs("aggregatePickedCount"))
 
@@ -289,17 +279,6 @@ object OrderProcessingActions extends BaseActions {
       .asJson
       .check(status.is(200),
         jsonPath("$.referenceId").saveAs("orderId"))
-
-
-  //  def scanZone(pickerTaskId: String, baseUrl: String = newConfigManager.getString("outward.base_url")): HttpRequestBuilder =
-  //    http("Scan Zone post completion of picking")
-  //      .put(session => baseUrl + s"aggregatePickerTasks/${getFromSession(session, "aggregatedPickerTaskId")}/scanZone")
-  //      .header("Authorization", session => getFromSession(session, "token"))
-  //      .body(StringBody(OrderPayloadCreation.getScanZonePayload(pickerTaskId)))
-  //      .asJson
-  //      .check(status.is(200),
-  //        jsonPath("$.aggregatePickerTask.id").is(session => s"${getFromSession(session, "aggregatedPickerTaskId")}"),
-  //        jsonPath("$.aggregatePickerTask.pickerId").is(session => s"${getFromSession(session, "pickerId")}"))
 
   def generateStoreInvoice(baseUrl: String = getString("outward.base_url"), thea: String = getString("outward.thea")) =
     http("generating Store invoice")
