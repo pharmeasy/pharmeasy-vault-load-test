@@ -17,13 +17,18 @@ object newUtilities {
 
   private val random = scala.util.Random
 
-  def randomNumberBetweenRange(start: Int, end: Int) = start + random.nextInt((end - start) + 1)
+  private val count: Integer=0
+
+
+  def randomNumberBetweenRange(start: Int, end: Int):Integer = start + random.nextInt((end - start) + 1)
 
   def randomFromSeq(seq: Seq[_]) = seq(randomNumberBetweenRange(0, seq.size - 1))
 
   def randomFromArray(seq: Array[_]) = seq(randomNumberBetweenRange(0, seq.size - 1))
 
   def randomMobileNumber = randomNumberBetweenRange(7, 9).toString + RandomStringUtils.randomNumeric(9).toString
+
+  def inc() = { count + 1 }
 
   def openStream(resource: String) = {
     val file = new java.io.File(resource.trim)

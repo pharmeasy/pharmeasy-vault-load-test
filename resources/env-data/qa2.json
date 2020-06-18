@@ -1,0 +1,22 @@
+{
+	"auth_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJhcHAiOiJuZWJ1bGEiLCJhdWQiOiJtZXJjdXJ5IiwidWlkIjoiMDlkNTA1YjUtZDg5Zi00MzYyLWIzM2EtNjg2OTMyMjUyODExIiwiaXNzIjoiUGhhcm1FYXN5LmluIiwibmFtZSI6ImRocnV2Iiwic3RvcmUiOiIwNjViNjQyYS0yNmU1LTRiZTMtYWMyOS0wMWQ3ZWU2MDVhNDYiLCJzY29wZXMiOlsic3RvcmUtYmlsbGluZy11c2VyIiwic3RvcmUtcGhhcm1hY2lzdCIsIndoLWJpbGxpbmctdXNlciIsIndoLWdhdGUtcGFzcy11c2VyIiwid2gtc2lnbmF0b3J5Iiwid2gtc3VwZXItYWRtaW4iXSwiZXhwIjoxNTcxNzIzNzk2LCJ1c2VyIjoiZGhydXYuY2hvdWRoYXJ5QHBoYXJtZWFzeS5pbiIsInRlbmFudCI6InRoMDA4In0.ryD77o4L0DkrDrfJPVeRYnzV_RRSYQuO4x1Oah9uytNzsM11IHNAFj93wl6wkBwPv_aMc_WAc8a44a22ouW0Lg",
+	"fcm_token": "eepROGoZDAQ:APA91bGarsCu0k2xGcAKAlg2tIr-IZmIM8vyhph_U9r2_xRnNqfJRAZQK--xcNKD8JKezrTKyNFNff2NFtFCisv997GmgwpqV5v5vH3fWNILMrL9twqWn_t3yfKy01zSOiTCqgCfsehG",
+	"app_userName": "raj",
+	"app_password": "12345",
+	"store_id": "065b642a-26e5-4be3-ac29-01d7ee605a46",
+	"jwt": {
+		"secret_key": "mercury@2018"
+	},
+	"pickingEnabled" : true,
+	"binScan" :false,
+	"multiPicking" : true,
+	"promotionalPicking" :true,
+	"ucodeBatchV0" :true,
+    "ucodeBatchV1"	 : true,
+    "orderPrioritisation" : true,
+    "th032.addressId" :253329 ,
+    "cookie" : "SL_C_23361dd035530_KEY=b1b7178b8526fe0199f32e928288029afe35278a; X-App-Version=1.0; X-Phone-Platform=web; X-Default-City=1; X-Pincode=391331; _ga=GA1.2.1478228750.1572333062; _gcl_au=1.1.1816945524.1572333062; XdI=05b897b4db04c68077e214d1f824bfff; WZRK_G=92e1b8fb0fca406eac22a58cf9af09bc; _omappvp=8Hm1doyoia5EUX3oDXhMtylzJ4sXTsF8CJVku2FX1XhwbZfB3YbsO4dfhJj0TWmA7ynlnughzbytowcuA47AJjto0WNRV18u; cto_lwid=349cd9ce-cca8-40a3-951f-f8d07ce42311; _fbp=fb.1.1572333063657.866530702; _gid=GA1.2.1882447742.1574150413; X-Access-Token=9AYhkeZ4FZki37GP31Nu0DzI9RcTnxBS; XCID=307797; mp_9ce8b1f91073a1e7ebe2d3f1509ae17a_mixpanel=%7B%22distinct_id%22%3A%20%2216e165a89fd423-0c4399e79bd4f7-38677b00-13c680-16e165a89fecc1%22%2C%22%24device_id%22%3A%20%2216e165a89fd423-0c4399e79bd4f7-38677b00-13c680-16e165a89fecc1%22%2C%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%7D; WZRK_S_TEST-K9Z-WWR-854Z=%7B%22p%22%3A1%2C%22s%22%3A1574169093%2C%22t%22%3A1574169284%7D",
+    "catalog_auth":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyLCJzYWx0Ijo5NDkxMDV9.VZxttcF05fRmTTxzxVY5DjH9sCZh7QPPkSp12IEO7fo"
+    
+}
+
