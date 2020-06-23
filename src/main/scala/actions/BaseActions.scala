@@ -1,17 +1,13 @@
 package actions
 
-import io.gatling.commons.NotNothing
-import io.gatling.commons.util.TypeCaster
 import io.gatling.core.session.Session
 import utils.Utilities._
-
-import scala.reflect.ClassTag
 
 trait BaseActions {
 
   protected def getFromSession(session: Session, key: String, defaultValue: String = null): String = session(key).asOption[String].getOrElse(defaultValue)
+  protected def getListFromSession(session: Session, key: String, defaultValue: List[String] = null): List[String] = session(key).asOption[List[String]].getOrElse(defaultValue)
   protected def getSeqFromSession(session: Session, key: String, defaultValue: Seq[String] = null): Seq[String] = session(key).asOption[Seq[String]].getOrElse(defaultValue)
-
   private val deliveryInterval = Array(Map("interval" -> 0), Map("interval" -> 30), Map("interval" -> 45), Map("interval" -> 60))
 
   protected def randomInterval() = deliveryInterval(randomNumberBetweenRange(0, deliveryInterval.length - 1))("interval")

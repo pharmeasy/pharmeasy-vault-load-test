@@ -1,0 +1,53 @@
+{
+    "prod": {
+        "mercury": "https://thea.mercuryonline.co/api"
+    },"qa": {
+        "mercury": "https://qa.thea.gomercury.in/api",
+        "config": "https://qa.thea.gomercury.in/api/config",
+        "search": "https://staging.pharmeasy.in/api/search",
+        "omnisearch": "http://{node}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "delivery": "https://staging.pharmeasy.in/api/delivery",
+        "address": "http://{node}-api.php-main-dev.pharmeasy.in/v3/addresses",
+        "ecommerce": "http://{node}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "catalog": "https://inventory-staging.pharmeasy.in/catalog/v1/products"
+    },
+     "qa_gometal": {
+        "mercury": "https://qa.thea.gometal.in/api",
+        "config": "https://qa.thea.gometal.in/api/config",
+        "search": "https://staging.pharmeasy.in/api/search",
+        "omnisearch": "https://{cmsNode}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "delivery": "https://staging.pharmeasy.in/api/delivery",
+        "address": "https://{cmsNode}-api.php-main-dev.pharmeasy.in/v3/addresses",
+        "ecommerce": "https://{cmsNode}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "catalog": "https://inventory-staging.pharmeasy.in/catalog/v1/products"
+    },"qa3_gometal": {
+        "mercury": "https://qa3.thea.gometal.in/api",
+        "config": "https://qa3.thea.gometal.in/api/config",
+        "search": "https://staging.pharmeasy.in/api/search",
+        "omnisearch": "https://{cmsNode}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "delivery": "https://staging.pharmeasy.in/api/delivery",
+        "address": "https://{cmsNode}-api.php-main-dev.pharmeasy.in/v3/addresses",
+        "ecommerce": "https://{cmsNode}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "catalog": "https://inventory-staging.pharmeasy.in/catalog/v1/products"
+    },
+    "qa2": {
+        "mercury": "https://qa2.thea.gomercury.in/api",
+        "config": "https://qa2.thea.gomercury.in/api/config",
+        "search": "https://staging.pharmeasy.in/api/search",
+        "omnisearch": "http://{node}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "delivery": "https://staging.pharmeasy.in/api/delivery",
+        "address": "http://{node}-api.php-main-dev.pharmeasy.in/v3/addresses",
+        "ecommerce": "http://{node}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "catalog": "https://inventory-staging.pharmeasy.in/catalog/v1/products"
+    },
+    "stage": {
+        "mercury": "https://staging.thea.gomercury.in/api",
+        "config": "https://staging.thea.gomercury.in/api/config",
+        "search": "https://staging.pharmeasy.in/api/search",
+        "omnisearch": "http://{node}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "delivery": "https://staging.pharmeasy.in/api/delivery",
+        "address": "http://{node}-api.php-main-dev.pharmeasy.in/v3/addresses",
+        "ecommerce": "http://{node}-api.php-main-dev.pharmeasy.in/v3/ecommerce",
+        "catalog": "https://inventory-staging.pharmeasy.in/catalog/v1/products"
+    }
+}

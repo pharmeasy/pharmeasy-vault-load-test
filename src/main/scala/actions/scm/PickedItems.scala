@@ -1,3 +1,4 @@
 package actions.scm
 
-case class PickedItems ()
+case class PickedItems (
+                       )

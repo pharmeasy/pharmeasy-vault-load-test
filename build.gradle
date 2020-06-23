@@ -1,6 +1,7 @@
 apply plugin: "scala"
 apply plugin: "idea"
 apply plugin: "eclipse"
+apply plugin: "java"
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -38,6 +39,7 @@ dependencies {
     compile group: 'com.opencsv', name: 'opencsv', version: '5.0'
     compile group: 'org.scala-tools', name: 'maven-scala-plugin', version: '2.11'
     compile "in.pharmeasy.automation:pharmeasy-api-utils:${frmk_version}"
+    compile "com.auito.core-automation:auto-lib-db:${frmk_version}"
 }
 
 
@@ -50,7 +52,7 @@ task loadTest(type: JavaExec) {
     ]
     main = "io.gatling.app.Gatling"
     args = [
-            "--simulation",System.getProperty("loadTestClass","simulations.templates.redbook.TemplateRedbookMarketplaceOrderProcess"),
+            "--simulation",System.getProperty("loadTestClass", "simulations.B2COrders"),
             "--results-folder", "gatling-results",
             "--binaries-folder", sourceSets.test.output.toString(),
             "--simulations-folder", sourceSets.test.scala.srcDirs
