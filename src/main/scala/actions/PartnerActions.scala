@@ -11,18 +11,18 @@ object PartnerActions {
     "tc-partner-service-token" -> "aZ4K9tXfY6PQ1mUnRb7LoJcTzvA3NeM82HDqk5gWRpFYVbMJ0x"
   )
 
-  val getPartnerDetailsByPartnerId = feed(feeder)
+  val getPartnerDetailsByPartnerIdentity = feed(feeder)
     .exec(
       http("GET Partner Details by partner_id")
-        .get("/v1/partner/details?partner_id=${entity_id}")
+        .get("/v1/partner/details?partner_identity=${entity_identity}")
         .headers(headers)
         .check(status.is(200))
     )
 
-  val getPartnerDetailsByIdentity = feed(feeder)
+  val getPartnerDetailsById = feed(feeder)
     .exec(
       http("GET Partner Details by id")
-        .get("/v1/partner/details?id=${entity_identity}")
+        .get("/v1/partner/details?id=${entity_id}")
         .headers(headers)
         .check(status.is(200))
     )

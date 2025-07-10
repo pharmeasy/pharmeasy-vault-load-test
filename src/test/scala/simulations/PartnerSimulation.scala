@@ -4,6 +4,7 @@ import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import scala.concurrent.duration._
 import actions.PartnerActions
+import utils.ConfigManager
 
 class PartnerSimulation extends Simulation {
 
@@ -12,9 +13,9 @@ class PartnerSimulation extends Simulation {
     .acceptHeader("application/json")
 
   val scn = scenario("Partner Load Test Scenario")
-    .exec(PartnerActions.getPartnerDetailsByPartnerId)
+    .exec(PartnerActions.getPartnerDetailsByPartnerIdentity)
     .pause(1)
-    .exec(PartnerActions.getPartnerDetailsByIdentity)
+    .exec(PartnerActions.getPartnerDetailsById)
     .pause(1)
     .exec(PartnerActions.getEntityConfigById)
     .pause(1)
@@ -22,9 +23,8 @@ class PartnerSimulation extends Simulation {
 
   setUp(
     scn.inject(
-      constantUsersPerSec(5).during(30.seconds),
-      constantUsersPerSec(10).during(30.seconds),
-      constantUsersPerSec(15).during(30.seconds)
-    ).protocols(httpProtocol)
-  )
+      rampUsersPerSec(1) to ConfigManager.getInt("multiple.testRampUpTargetRate", 1) during (ConfigManager.getInt("multiple.testRampUpDuration", 1).seconds),
+      constantUsersPerSec(ConfigManager.getFloat("users", 1)) during (ConfigManager.getInt("duration", 3).seconds)
+    )
+  ).protocols(httpProtocol)
 }
