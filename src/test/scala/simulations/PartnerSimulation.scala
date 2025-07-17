@@ -14,12 +14,35 @@ class PartnerSimulation extends Simulation {
   val scn5  = PartnerActions.scenarioWithCsv("partner_detail_5rps.csv", "5 RPS")
   val scn10 = PartnerActions.scenarioWithCsv("partner_detail_10rps.csv", "10 RPS")
   val scn15 = PartnerActions.scenarioWithCsv("partner_detail_15rps.csv", "15 RPS")
+  val rampDuration = System.getProperty("rampDuration", "60").toInt
+  val constantDuration = System.getProperty("constantDuration", "240").toInt
+  val delayBetweenScenarios = System.getProperty("delay", "300").toInt
+
+  val rampUsers5 = System.getProperty("rampUsers5", "5").toInt
+  val constantUsers5 = System.getProperty("constantUsers5", "5").toInt
+
+  val rampUsers10 = System.getProperty("rampUsers10", "10").toInt
+  val constantUsers10 = System.getProperty("constantUsers10", "2").toInt
+
+  val rampUsers15 = System.getProperty("rampUsers15", "15").toInt
+  val constantUsers15 = System.getProperty("constantUsers15", "3").toInt
 
  setUp(
-
-   scn5.inject(rampUsersPerSec(1) to 5 during (60.seconds), constantUsersPerSec(5) during (240.seconds)),
-   scn10.inject(rampUsersPerSec(5) to 10 during (60.seconds), constantUsersPerSec(2) during (240.seconds)),
-   scn15.inject(rampUsersPerSec(10) to 15 during (60.seconds), constantUsersPerSec(3) during (240.seconds))
+   scn5.inject(
+     rampUsersPerSec(1) to rampUsers5 during (rampDuration.seconds),
+     constantUsersPerSec(constantUsers5) during (constantDuration.seconds)
+   ),
+   scn10.inject(
+     nothingFor(delayBetweenScenarios.seconds),
+     rampUsersPerSec(1) to rampUsers10 during (rampDuration.seconds),
+     constantUsersPerSec(constantUsers10) during (constantDuration.seconds)
+   ),
+   scn15.inject(
+     nothingFor((delayBetweenScenarios * 2).seconds),
+     rampUsersPerSec(10) to rampUsers15 during (rampDuration.seconds),
+     constantUsersPerSec(constantUsers15) during (constantDuration.seconds)
+   )
  ).protocols(httpProtocol)
 
+  System.out.println("jdk.tls.client.protocols=" + System.getProperty("jdk.tls.client.protocols"))
 }
