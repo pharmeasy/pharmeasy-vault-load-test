@@ -32,6 +32,7 @@ dependencies {
     compile "com.jayway.jsonpath:json-path:2.4.0"
     compile "io.gatling.highcharts:gatling-charts-highcharts:3.3.1"
     compile "org.apache.commons:commons-lang3:3.9"
+    // implementation "io.gatling.highcharts:gatling-charts-highcharts:3.9.5"  //change to accommodate TLS1.3+
 
     compile "org.json4s:json4s-native_2.12:3.6.7"
     compile "org.json4s:json4s-jackson_2.12:3.6.7"
@@ -48,11 +49,13 @@ task loadTest(type: JavaExec) {
     dependsOn testClasses
     classpath = sourceSets.test.runtimeClasspath
     jvmArgs = [
-            "-Dgatling.core.directory.binaries=${sourceSets.test.output.toString()}", "-Xms4g", "-Xmx8g", "-Dgatling.charting.indicators.lowerBound=400"
+            "-Dgatling.core.directory.binaries=${sourceSets.test.output.toString()}", "-Xms4g", "-Xmx8g", "-Dgatling.charting.indicators.lowerBound=400",
+            //          '-Djdk.tls.client.protocols=TLSv1.3', //change to accommodate TLS1.3+
+//            "-Djavax.net.debug=ssl,handshake"  //logging in case of TLS prootocol issues
     ]
     main = "io.gatling.app.Gatling"
     args = [
-            "--simulation",System.getProperty("loadTestClass", "simulations.B2COrders"),
+            "--simulation",System.getProperty("loadTestClass", "simulations.PartnerSimulation"),
             "--results-folder", "gatling-results",
             "--binaries-folder", sourceSets.test.output.toString(),
             "--simulations-folder", sourceSets.test.scala.srcDirs
