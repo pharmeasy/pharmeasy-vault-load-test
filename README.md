@@ -1,1 +1,1 @@
-# pharmeasy-vault-load-test
+# pharmeasy-e2e-load-test
