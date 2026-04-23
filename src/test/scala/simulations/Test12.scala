@@ -30,5 +30,7 @@ class Test12 extends Simulation {
   val scenario1 = scenario("Execute GetOutstanding")
     .exec(http("Execute GetOutstanding").get("/ledgers/outstanding?distributorId=1891&retailerId=40871")).pause(2)
 
-  setUp(scenario1.inject(constantUsersPerSec(System.getProperty("constantUsers", "20").toInt) during (System.getProperty("duration", "200").toInt))).protocols(httpConf)
-}
+  setUp(scenario1.inject(
+      rampUsersPerSec(1).to(System.getProperty("constantUsers", "20").toInt).during(30.seconds), // warmup
+      constantUsersPerSec(System.getProperty("constantUsers", "20").toInt).during(System.getProperty("duration", "200").toInt.seconds)
+    )).protocols(httpConf)}
