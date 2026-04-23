@@ -1,20 +1,23 @@
-apply plugin: "scala"
-apply plugin: "idea"
-apply plugin: "eclipse"
-apply plugin: "java"
-
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-def maven_url = System.getenv("MAVEN_URL") ?: "${maven_url}"
-def maven_username = System.getenv("MAVEN_USERNAME") ?: new String("${maven_username}".decodeBase64())
-def maven_password = System.getenv("MAVEN_PASSWORD") ?: new String("${maven_password}".decodeBase64())
-
-repositories {
-    jcenter()
-    maven { url maven_url }
+plugins {
+    id 'scala'
+    id 'eclipse'
+    id 'idea'
 }
 
+group = 'com.example'
+version = '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+repositories {
+    mavenCentral()
+    //jcenter()
+    maven { url "${maven_url}" }
+
+}
 
 configurations {
     developmentOnly
@@ -22,63 +25,74 @@ configurations {
         extendsFrom developmentOnly
     }
     compileOnly {
+
         extendsFrom annotationProcessor
     }
 }
 
 dependencies {
-    compile "org.projectlombok:lombok:1.18.10"
-    annotationProcessor "org.projectlombok:lombok:1.18.10"
-    compile "com.jayway.jsonpath:json-path:2.4.0"
-    compile "io.gatling.highcharts:gatling-charts-highcharts:3.3.1"
-    compile "org.apache.commons:commons-lang3:3.9"
-    // implementation "io.gatling.highcharts:gatling-charts-highcharts:3.9.5"  //change to accommodate TLS1.3+
+    implementation "org.projectlombok:lombok:1.18.32"
+    annotationProcessor "org.projectlombok:lombok:1.18.32"
 
-    compile "org.json4s:json4s-native_2.12:3.6.7"
-    compile "org.json4s:json4s-jackson_2.12:3.6.7"
-    compile group: 'org.reflections', name: 'reflections', version: '0.9.11'
-    compile group: 'com.opencsv', name: 'opencsv', version: '5.0'
-    compile group: 'org.scala-tools', name: 'maven-scala-plugin', version: '2.11'
-    compile "in.pharmeasy.automation:pharmeasy-api-utils:${frmk_version}"
-    compile "com.auito.core-automation:auto-lib-db:${frmk_version}"
+    implementation "com.jayway.jsonpath:json-path:2.4.0"
+    implementation "io.gatling.highcharts:gatling-charts-highcharts:3.3.1"
+    implementation "org.apache.commons:commons-lang3:3.9"
+    implementation "com.auito.core-automation:auto-lib-db:${frmk_version}"
+    implementation "com.auito.core-automation:auto-lib-core:${frmk_version}"
+    implementation "com.auito.core-automation:auto-lib-rest:${frmk_version}"
+    implementation "in.pharmeasy.automation.scm:pe-outward-automation:${outward_version}"
+
+    implementation "org.json4s:json4s-native_2.12:3.6.7"
+    implementation "org.json4s:json4s-jackson_2.12:3.6.7"
+    implementation "org.reflections:reflections:0.9.11"
+    implementation "com.opencsv:opencsv:5.0"
 }
+
+
+configurations.all {
+    resolutionStrategy {
+        force "com.auito.core-automation.starter:ui-mobile-api:${frmk_version}"
+    }
+}
+
+
 
 
 task loadTest(type: JavaExec) {
 
     dependsOn testClasses
     classpath = sourceSets.test.runtimeClasspath
-    jvmArgs = [
-            "-Dgatling.core.directory.binaries=${sourceSets.test.output.toString()}", "-Xms4g", "-Xmx8g", "-Dgatling.charting.indicators.lowerBound=400",
-            //          '-Djdk.tls.client.protocols=TLSv1.3', //change to accommodate TLS1.3+
-//            "-Djavax.net.debug=ssl,handshake"  //logging in case of TLS prootocol issues
+    def baseJvmArgs = [
+            "-Dgatling.core.directory.binaries=${sourceSets.test.output.toString()}", "-Xms4g", "-Xmx8g", "-Dgatling.charting.indicators.lowerBound=400"
     ]
-    main = "io.gatling.app.Gatling"
+    // Ensure CLI -D props reach the forked Gatling JVM (ConfigManager reads System.getProperty).
+    [
+            'enabled_tags', 'filter.scenarios', 'users', 'duration', 'constantUsersOrRampUp',
+            'useRampUp', 'times', 'durationTimes', 'useConf', 'loadTestClass', 'requestTimeout',
+            'handshakeTimeout', 'trace', 'confFile'
+    ].each { key ->
+        def v = System.getProperty(key)
+        if (v != null) {
+            baseJvmArgs += "-D${key}=${v}"
+        }
+    }
+    jvmArgs = baseJvmArgs
+    mainClass = "io.gatling.app.Gatling"
     args = [
-            "--simulation",System.getProperty("loadTestClass", "simulations.PartnerSimulation"),
+            "--simulation", "simulations." + System.getProperty("loadTestClass", "Test12"),
             "--results-folder", "gatling-results",
             "--binaries-folder", sourceSets.test.output.toString(),
             "--simulations-folder", sourceSets.test.scala.srcDirs
     ]
 
-    def file1 = file('orderGroupId.csv');
-    if (file1.exists()) {
-        file1.delete();
-    }
-
-    def file2 = file('externalOrderId.csv');
-    if (file2.exists()) {
-        file2.delete();
-    }
-
+    systemProperty('https.protocols', 'TLSv1')
     systemProperty('gatling.charting.indicators.lowerBound', '400')
     systemProperty('gatling.ahc.requestTimeout', System.getProperty('requestTimeout', '60000'))
-    systemProperty('gatling.ahc.handshakeTimeout', System.getProperty('handshakeTimeout', '60000'))
     systemProperties System.properties
-    def users = System.getProperty('users', "1")
-    def durationInSec = System.getProperty('durationInSec', "1")
-    def useRampUp = "false".equals(System.getProperty("useRampUp", "false")) ? "constant-users" : "rampup-users"
-
-    systemProperty('gatling.core.outputDirectoryBaseName', "${useRampUp}-${users}-per-sec-for-${durationInSec}-sec-${System.currentTimeMillis()}")
 }
 
+def logbackGatlingConfig() {
+    def isTrace = null != System.getProperty('trace') || System.getProperty('trace').trim().isEmpty()
+    def file = isTrace ? 'logback-trace.xml' : 'logback.xml';
+    return sourceSets.test.resources.find { it.name == file }
+}

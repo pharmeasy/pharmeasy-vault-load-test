@@ -8,7 +8,7 @@ import actions.PartnerActions
 class PartnerSimulation extends Simulation {
 
   val httpProtocol = http
-    .baseUrl("https://tc-partner-master.private.thyrocare.com")
+    .baseUrl("https://staging.thea.onprem.scm.gomercury.in/api/ledger/ledgers/outstanding?distributorId=1891&retailerId=40871")
     .acceptHeader("application/json")
 
   val scn5  = PartnerActions.scenarioWithCsv("partner_detail_5rps.csv", "5 RPS")
